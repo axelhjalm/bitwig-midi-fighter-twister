@@ -16,22 +16,21 @@ import java.util.Optional;
 public class DeviceTrack extends MidiListener {
 
     private static final int NO_OF_CONTROLS = 8;
-    private final CursorTrack cursorTrack;
     private final PinnableCursorDevice cursorDevice;
     private final CursorRemoteControlsPage remoteControlsPage;
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
 
     public DeviceTrack(ControllerHost host) {
         super(host);
-        cursorTrack = host.createCursorTrack("2f9fce85-6a96-46a7-b8b4-ad097ee13f9d", "cursor-track", 0, 0, true);
-        cursorDevice = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
+
+        cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
 
-        addListener(Encoder.Volume, cursorTrack.getVolume());
-        addListener(Encoder.Pan, cursorTrack.getPan());
+        addListener(Encoder.Volume, cursorTrack().getVolume());
+        addListener(Encoder.Pan, cursorTrack().getPan());
         addListener(Encoder.PlayPulse, transport().isPlaying());
 
-        navigators.put(0, new CursorNavigator(cursorTrack, 10));
+        navigators.put(0, new CursorNavigator(cursorTrack(), 10));
         navigators.put(4, new CursorNavigator(remoteControlsPage, 10));
         navigators.put(5, new CursorNavigator(cursorDevice, 10));
 
@@ -96,15 +95,15 @@ public class DeviceTrack extends MidiListener {
         int cc = msg.getData1();
         if (cc == 1) {
             if (msg.getChannel() == 1) {
-                cursorTrack.getMute().toggle();
-            } else {
-                cursorTrack.getVolume().value().set(msg.getData2(), 128);
+                cursorTrack().getMute().toggle();
+            } else if(msg.getChannel() == 0){
+                cursorTrack().getVolume().value().set(msg.getData2(), 128);
             }
         } else if (cc == 2) {
             if (msg.getChannel() == 1) {
-                cursorTrack.getPan().reset();
-            } else {
-                cursorTrack.getPan().set(msg.getData2(), 128);
+                cursorTrack().getPan().reset();
+            } else if(msg.getChannel() == 0){
+                cursorTrack().getPan().set(msg.getData2(), 128);
             }
         } else if (cc == 3) {
 

@@ -9,6 +9,7 @@ import com.hjaxel.framework.IntSetting;
 import com.hjaxel.navigation.CursorNavigator;
 import com.hjaxel.page.MidiListener;
 import com.hjaxel.page.device.DeviceTrack;
+import com.hjaxel.page.drum.DrumSequencer;
 
 import java.util.*;
 
@@ -30,8 +31,13 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         mTransport = host.createTransport();
         host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
         host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
+        Clip clip = host.createLauncherCursorClip(16, 16);
+
 
         listeners.add(new DeviceTrack(host));
+        listeners.add(new DrumSequencer(host, clip));
+
+
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
@@ -59,9 +65,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         print(msg);
 
         listeners.forEach(l -> l.onMessage(msg));
-
-
-
     }
 
     private void print(String s) {
