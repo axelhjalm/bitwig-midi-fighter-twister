@@ -5,12 +5,16 @@ import com.bitwig.extension.api.PlatformType;
 import com.bitwig.extension.controller.AutoDetectionMidiPortNamesList;
 import com.bitwig.extension.controller.ControllerExtensionDefinition;
 import com.bitwig.extension.controller.api.ControllerHost;
+import com.bitwig.extension.controller.api.Preferences;
+import com.bitwig.extension.controller.api.SettableRangedValue;
+import com.hjaxel.framework.IntSetting;
 
 public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDefinition
 {
    private static final UUID DRIVER_ID = UUID.fromString("2cbd0a22-c0a6-44b9-a646-2da2d70939e2");
 
    public static final String[] DEVICE_DISCOVERY_NAME = {"Midi Fighter Twister"};
+   private Preferences preferences;
 
    public MidiFighterTwisterExtensionDefinition()
    {
@@ -97,6 +101,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    @Override
    public MidiFighterTwisterExtension createInstance(final ControllerHost host)
    {
+
       return new MidiFighterTwisterExtension(this, host);
    }
 }
