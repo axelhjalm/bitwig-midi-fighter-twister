@@ -10,13 +10,13 @@ import java.util.Optional;
  */
 public enum Encoder {
 
-    Track(1, 0),
-    Volume(1, 1),
-    Mute(2, 1),
-    Pan(1, 2),
-    PanReset(2, 2),
-    ParameterPageNavigation(1, 4),
-    DeviceNavigation(1, 5),
+    Track(0, 0),
+    Volume(0, 1),
+    Mute(1, 1),
+    Pan(0, 2),
+    PanReset(1, 2),
+    ParameterPageNavigation(0, 4),
+    DeviceNavigation(0, 5),
     Play(1, 3),
     PlayPulse(2, 3);
 

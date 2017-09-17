@@ -1,6 +1,7 @@
 package com.hjaxel.page.drum;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
+import com.bitwig.extension.callback.StepDataChangedCallback;
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
@@ -15,6 +16,8 @@ import java.util.List;
  */
 public class DrumSequencer extends MidiListener {
 
+
+
     private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
             MidiChannelAndRange.of(0, 16, 31),
             MidiChannelAndRange.of(1, 16, 31),
@@ -26,6 +29,7 @@ public class DrumSequencer extends MidiListener {
         super(host);
         this.clip = clip;
         clip.setName("Drum Sequencer");
+
     }
 
 
@@ -43,17 +47,27 @@ public class DrumSequencer extends MidiListener {
     private boolean handle(ShortMidiMessage midiMessage) {
 
         if (isCreateClip(midiMessage)) {
+
             ClipLauncherSlotBank slotBank = clip.getTrack().clipLauncherSlotBank();
+
             slotBank.createEmptyClip(0, 16);
         } else {
-
-            int x = midiMessage.getData1() - 16;
+            int beat = midiMessage.getData1() - 16;
             int vel = midiMessage.getData2();
-            if(midiMessage.getChannel() == 1){
-                clip.setStep(x, 36, 70, 0.25);
+
+            // toggle on
+            if (midiMessage.getChannel() == 1 && midiMessage.getData2() == 127) {
+                clip.setStep(beat, 36, 90, 0.25);
+                midiOut().sendMidi(176, midiMessage.getData1(), 90);
             }
-            if(midiMessage.getChannel() == 0){
-                clip.setStep(x, 36, vel, 0.25);
+            // toggle off
+            if (midiMessage.getChannel() == 1 && midiMessage.getData2() == 0) {
+                clip.clearStep(beat, 36);
+                midiOut().sendMidi(176, midiMessage.getData1(), 0);
+            }
+            // change velocity (can it be blocked if not toggled?)
+            if (midiMessage.getChannel() == 0) {
+                clip.setStep(beat, 36, vel, 0.25);
             }
         }
 

@@ -24,6 +24,15 @@ public class DeviceTrack extends MidiListener {
         super(host);
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
+        cursorTrack().addIsSelectedInMixerObserver(v -> {
+            if (v){
+                int volume = (int) (127 * cursorTrack().getVolume().value().get());
+                Encoder.Volume.send(midiOut(), volume);
+                int pan = (int) (127 * cursorTrack().getPan().value().get());
+                Encoder.Pan.send(midiOut(), pan);
+                print("device selected vol= " + volume +", pan= " + pan);
+            }
+        });
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
