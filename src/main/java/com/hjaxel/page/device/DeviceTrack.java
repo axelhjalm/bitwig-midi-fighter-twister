@@ -1,8 +1,11 @@
 package com.hjaxel.page.device;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
+import com.bitwig.extension.callback.BooleanValueChangedCallback;
 import com.bitwig.extension.controller.api.*;
 import com.hjaxel.framework.Encoder;
+import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.navigation.CursorNavigator;
 import com.hjaxel.page.MidiListener;
 
@@ -24,15 +27,8 @@ public class DeviceTrack extends MidiListener {
         super(host);
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        cursorTrack().addIsSelectedInMixerObserver(v -> {
-            if (v){
-                int volume = (int) (127 * cursorTrack().getVolume().value().get());
-                Encoder.Volume.send(midiOut(), volume);
-                int pan = (int) (127 * cursorTrack().getPan().value().get());
-                Encoder.Pan.send(midiOut(), pan);
-                print("device selected vol= " + volume +", pan= " + pan);
-            }
-        });
+        cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
+        cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
@@ -46,9 +42,22 @@ public class DeviceTrack extends MidiListener {
         addParameterPageControls();
     }
 
+    private BooleanValueChangedCallback onTrackFocus() {
+        return trackSelected -> {
+            if (trackSelected){
+                Encoder.Volume.send(midiOut(), midiValue(cursorTrack().getVolume()));
+                Encoder.Pan.send(midiOut(), midiValue(cursorTrack().getPan()));
+            }
+        };
+    }
+
+    private int midiValue(Parameter p) {
+        return Math.max(0, (int) (127 * p.value().get()));
+    }
+
     @Override
-    protected boolean accept(ShortMidiMessage msg) {
-        if (msg.getData1() > 15){
+    protected boolean accept(MidiMessage msg) {
+        if (msg.getCc() > 15){
             return false;
         }
         Optional<Encoder> optional = Encoder.from(msg);
@@ -67,7 +76,7 @@ public class DeviceTrack extends MidiListener {
         }
 
         if (isCursorNavigation(msg)) {
-            navigators.get(msg.getData1()).onChange(msg.getData2());
+            navigators.get(msg.getCc()).onChange(msg.getVelocity());
         }
 
         return true;
@@ -100,47 +109,44 @@ public class DeviceTrack extends MidiListener {
     }
 
 
-    private void handleTrackControl(ShortMidiMessage msg) {
-        int cc = msg.getData1();
-        if (cc == 1) {
-            if (msg.getChannel() == 1) {
+    private void handleTrackControl(MidiMessage msg) {
+        if (msg.getCc() == 1) {
+            if (msg.getChannel() == MidiChannel.CHANNEL_1) {
                 cursorTrack().getMute().toggle();
-            } else if(msg.getChannel() == 0){
-                cursorTrack().getVolume().value().set(msg.getData2(), 128);
+            } else if(msg.getChannel() == MidiChannel.CHANNEL_0){
+                cursorTrack().getVolume().value().set(msg.getVelocity(), 128);
             }
-        } else if (cc == 2) {
-            if (msg.getChannel() == 1) {
+        } else if (msg.getCc() == 2) {
+            if (msg.getChannel() == MidiChannel.CHANNEL_1) {
                 cursorTrack().getPan().reset();
-            } else if(msg.getChannel() == 0){
-                cursorTrack().getPan().set(msg.getData2(), 128);
+            } else if(msg.getChannel() == MidiChannel.CHANNEL_0){
+                cursorTrack().getPan().set(msg.getVelocity(), 128);
             }
-        } else if (cc == 3) {
+        } else if (msg.getCc() == 3) {
 
         }
 
     }
 
-    private boolean isTrackControl(ShortMidiMessage msg) {
-        int cc = msg.getData1();
-        return cc >= 1 && cc <= 7;
+    private boolean isTrackControl(MidiMessage msg) {
+        return msg.isCCInRange(1, 7);
     }
 
-    private boolean isCursorNavigation(ShortMidiMessage msg) {
-        return navigators.containsKey(msg.getData1());
+    private boolean isCursorNavigation(MidiMessage msg) {
+        return navigators.containsKey(msg.getCc());
     }
 
-    private void updateParameter(ShortMidiMessage msg) {
+    private void updateParameter(MidiMessage msg) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
 
-        remoteControl.set(msg.getData2(), 128);
+        remoteControl.set(msg.getVelocity(), 128);
     }
 
-    private boolean isDeviceParameter(ShortMidiMessage msg) {
-        int data1 = msg.getData1();
-        return data1 >= 8 && data1 <= 15;
+    private boolean isDeviceParameter(MidiMessage msg) {
+        return msg.isCCInRange(8, 15);
     }
 
-    private int getParameterIndex(ShortMidiMessage msg) {
-        return msg.getData1() - 8;
+    private int getParameterIndex(MidiMessage msg) {
+        return msg.getCc() - 8;
     }
 }

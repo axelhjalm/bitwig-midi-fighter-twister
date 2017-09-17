@@ -62,7 +62,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      * Called when we receive short MIDI message on port 0.
      */
     private void onMidi0(ShortMidiMessage msg) {
-        print(msg);
+//        print(msg);
 
         listeners.forEach(l -> l.onMessage(msg));
     }

@@ -1,32 +1,30 @@
 package com.hjaxel.framework;
 
-import com.bitwig.extension.api.util.midi.ShortMidiMessage;
-
 /**
  * Created by axel on 2017-09-16.
  */
 public class MidiChannelAndRange {
 
-    private final int channel;
+    private final MidiChannel channel;
     private final int lower;
     private final int upper;
 
-    private MidiChannelAndRange(int channel, int lower, int upper){
+    private MidiChannelAndRange(MidiChannel channel, int lower, int upper){
         this.channel = channel;
         this.lower = lower;
         this.upper = upper;
     }
 
-    public static MidiChannelAndRange of(int channel, int lower, int upper){
+    public static MidiChannelAndRange of(MidiChannel channel, int lower, int upper){
         return new MidiChannelAndRange(channel, lower, upper);
     }
 
-    public boolean accepts(ShortMidiMessage midiMessage){
+    public boolean accepts(MidiMessage midiMessage){
         if (channel != midiMessage.getChannel()){
             return false;
         }
 
-        return upper >= midiMessage.getData1() && lower <= midiMessage.getData1();
+        return midiMessage.isCCInRange(lower, upper);
     }
 
 }

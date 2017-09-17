@@ -10,22 +10,25 @@ import java.util.Optional;
  */
 public enum Encoder {
 
-    Track(0, 0),
-    Volume(0, 1),
-    Mute(1, 1),
-    Pan(0, 2),
-    PanReset(1, 2),
-    ParameterPageNavigation(0, 4),
-    DeviceNavigation(0, 5),
-    Play(1, 3),
-    PlayPulse(2, 3);
+    Track(MidiChannel.CHANNEL_0, 0),
 
-    private final int channel;
+    Volume(MidiChannel.CHANNEL_0, 1),
+    Mute(MidiChannel.CHANNEL_1, 1),
+
+    Pan(MidiChannel.CHANNEL_0, 2),
+    PanReset(MidiChannel.CHANNEL_1, 2),
+
+    ParameterPageNavigation(MidiChannel.CHANNEL_0, 4),
+    DeviceNavigation(MidiChannel.CHANNEL_0, 5),
+    Play(MidiChannel.CHANNEL_1, 3),
+    PlayPulse(MidiChannel.CHANNEL_2, 3);
+
+    private final MidiChannel channel;
     private final int cc;
 
-    public static Optional<Encoder> from(ShortMidiMessage msg) {
+    public static Optional<Encoder> from(MidiMessage msg) {
         for (Encoder encoder : Encoder.values()) {
-            if (encoder.cc == msg.getData1() && encoder.channel == msg.getChannel()) {
+            if (encoder.cc == msg.getCc() && encoder.channel == msg.getChannel()) {
                 return Optional.of(encoder);
             }
         }
@@ -33,16 +36,13 @@ public enum Encoder {
         return Optional.empty();
     }
 
-    Encoder(int channel, int cc) {
+    Encoder(MidiChannel channel, int cc) {
         this.cc = cc;
         this.channel = channel;
     }
 
-    int out() {
-        return 176 + channel;
-    }
 
     public void send(MidiOut outPort, int value) {
-        outPort.sendMidi(out(), cc, value);
+        outPort.sendMidi(channel.value(), cc, value);
     }
 }

@@ -1,11 +1,12 @@
 package com.hjaxel.page.drum;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
-import com.bitwig.extension.callback.StepDataChangedCallback;
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
+import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiChannelAndRange;
+import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.page.MidiListener;
 
 import java.util.Arrays;
@@ -16,12 +17,12 @@ import java.util.List;
  */
 public class DrumSequencer extends MidiListener {
 
-
+    private boolean[] activeSteps = new boolean[16];
 
     private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
-            MidiChannelAndRange.of(0, 16, 31),
-            MidiChannelAndRange.of(1, 16, 31),
-            MidiChannelAndRange.of(3, 19, 19)
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_0, 16, 31),
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_1, 16, 31),
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 19, 19)
     );
     private final Clip clip;
 
@@ -29,12 +30,13 @@ public class DrumSequencer extends MidiListener {
         super(host);
         this.clip = clip;
         clip.setName("Drum Sequencer");
-
+        for(int i = 0; i < 16; i++){
+            activeSteps[i] = false;
+        }
     }
 
-
     @Override
-    protected boolean accept(ShortMidiMessage midiMessage) {
+    protected boolean accept(MidiMessage midiMessage) {
         for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
             if (midiChannelAndRange.accepts(midiMessage)) {
                 return handle(midiMessage);
@@ -44,7 +46,7 @@ public class DrumSequencer extends MidiListener {
         return false;
     }
 
-    private boolean handle(ShortMidiMessage midiMessage) {
+    private boolean handle(MidiMessage midiMessage) {
 
         if (isCreateClip(midiMessage)) {
 
@@ -52,29 +54,32 @@ public class DrumSequencer extends MidiListener {
 
             slotBank.createEmptyClip(0, 16);
         } else {
-            int beat = midiMessage.getData1() - 16;
-            int vel = midiMessage.getData2();
+            int step = midiMessage.getCc() - 16;
+            int velocity = midiMessage.getVelocity();
 
             // toggle on
-            if (midiMessage.getChannel() == 1 && midiMessage.getData2() == 127) {
-                clip.setStep(beat, 36, 90, 0.25);
-                midiOut().sendMidi(176, midiMessage.getData1(), 90);
+            if (midiMessage.getChannel() == MidiChannel.CHANNEL_1 && velocity == 127) {
+                activeSteps[step] = true;
+                clip.setStep(step, 36, 90, 0.25);
+                midiOut().sendMidi(176, midiMessage.getCc(), 90);
             }
             // toggle off
-            if (midiMessage.getChannel() == 1 && midiMessage.getData2() == 0) {
-                clip.clearStep(beat, 36);
-                midiOut().sendMidi(176, midiMessage.getData1(), 0);
+            if (midiMessage.getChannel() == MidiChannel.CHANNEL_1 && velocity == 0) {
+                activeSteps[step] = false;
+                clip.clearStep(step, 36);
+                sendTurnOff(MidiChannel.CHANNEL_0, midiMessage.getCc());
+                sendTurnOff(MidiChannel.CHANNEL_1, midiMessage.getCc());
             }
             // change velocity (can it be blocked if not toggled?)
-            if (midiMessage.getChannel() == 0) {
-                clip.setStep(beat, 36, vel, 0.25);
+            if (midiMessage.getChannel() == MidiChannel.CHANNEL_0 && activeSteps[step]) {
+                clip.setStep(step, 36, velocity, 0.25);
             }
         }
 
         return true;
     }
 
-    private boolean isCreateClip(ShortMidiMessage midiMessage) {
-        return midiMessage.getChannel() == 3 && midiMessage.getData1() == 19 && midiMessage.getData2() > 0;
+    private boolean isCreateClip(MidiMessage midiMessage) {
+        return midiMessage.getChannel() == MidiChannel.CHANNEL_3 && midiMessage.getCc() == 19 && midiMessage.getVelocity() > 0;
     }
 }
