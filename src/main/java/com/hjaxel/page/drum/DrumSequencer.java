@@ -1,6 +1,5 @@
 package com.hjaxel.page.drum;
 
-import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
@@ -25,12 +24,14 @@ public class DrumSequencer extends MidiListener {
             MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 19, 19)
     );
     private final Clip clip;
+    private final int note;
 
-    public DrumSequencer(ControllerHost host, Clip clip) {
+    public DrumSequencer(ControllerHost host, Clip clip, int note) {
         super(host);
         this.clip = clip;
+        this.note = note;
         clip.setName("Drum Sequencer");
-        for(int i = 0; i < 16; i++){
+        for (int i = 0; i < 16; i++) {
             activeSteps[i] = false;
         }
     }
@@ -47,39 +48,32 @@ public class DrumSequencer extends MidiListener {
     }
 
     private boolean handle(MidiMessage midiMessage) {
-
-        if (isCreateClip(midiMessage)) {
-
-            ClipLauncherSlotBank slotBank = clip.getTrack().clipLauncherSlotBank();
-
-            slotBank.createEmptyClip(0, 16);
-        } else {
             int step = midiMessage.getCc() - 16;
-            int velocity = midiMessage.getVelocity();
 
-            // toggle on
-            if (midiMessage.getChannel() == MidiChannel.CHANNEL_1 && velocity == 127) {
-                activeSteps[step] = true;
-                clip.setStep(step, 36, 90, 0.25);
-                midiOut().sendMidi(176, midiMessage.getCc(), 90);
+            switch (midiMessage.getChannel()) {
+                case CHANNEL_0:
+                    if (activeSteps[step]) {
+                        clip.setStep(step, note, midiMessage.getVelocity(), 0.25);
+                        break;
+                    }
+                case CHANNEL_1:
+                    if (midiMessage.getVelocity() == 127) {
+                        activeSteps[step] = true;
+                        clip.setStep(step, note, 90, 0.25);
+                        sendValue(MidiChannel.CHANNEL_1, midiMessage.getCc(), 90);
+                    }
+                    if (midiMessage.getVelocity() == 0) {
+                        activeSteps[step] = false;
+                        clip.clearStep(step, note);
+                        sendTurnOff(MidiChannel.CHANNEL_0, midiMessage.getCc());
+                        sendTurnOff(MidiChannel.CHANNEL_1, midiMessage.getCc());
+                    }
+                    break;
+                default:
+                    break;
             }
-            // toggle off
-            if (midiMessage.getChannel() == MidiChannel.CHANNEL_1 && velocity == 0) {
-                activeSteps[step] = false;
-                clip.clearStep(step, 36);
-                sendTurnOff(MidiChannel.CHANNEL_0, midiMessage.getCc());
-                sendTurnOff(MidiChannel.CHANNEL_1, midiMessage.getCc());
-            }
-            // change velocity (can it be blocked if not toggled?)
-            if (midiMessage.getChannel() == MidiChannel.CHANNEL_0 && activeSteps[step]) {
-                clip.setStep(step, 36, velocity, 0.25);
-            }
-        }
 
         return true;
     }
 
-    private boolean isCreateClip(MidiMessage midiMessage) {
-        return midiMessage.getChannel() == MidiChannel.CHANNEL_3 && midiMessage.getCc() == 19 && midiMessage.getVelocity() > 0;
-    }
 }

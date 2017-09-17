@@ -66,9 +66,7 @@ public abstract class MidiListener {
     }
 
     public final void onMessage(ShortMidiMessage midiMessage) {
-        MidiMessage message = new MidiMessage(MidiChannel.from(midiMessage.getChannel()), midiMessage.getData1(), midiMessage.getData2());
-        print(message.toString());
-        accept(message);
+        accept(new MidiMessage(MidiChannel.from(midiMessage.getChannel()), midiMessage.getData1(), midiMessage.getData2()));
     }
 
     protected abstract boolean accept(MidiMessage midiMessage);
