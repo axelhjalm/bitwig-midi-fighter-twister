@@ -57,9 +57,11 @@ public class DeviceTrack extends MidiListener {
 
     @Override
     protected boolean accept(MidiMessage msg) {
-        if (msg.getCc() > 15){
+        if (msg.getCc() > 15 || msg.getChannel() != MidiChannel.CHANNEL_0 || msg.getChannel() != MidiChannel.CHANNEL_1){
             return false;
         }
+        print(this.getClass().getSimpleName() + " accepted " + msg);
+
         Optional<Encoder> optional = Encoder.from(msg);
         if (optional.isPresent()) {
             Encoder encoder = optional.get();

@@ -30,6 +30,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         host = getHost();
 
         mTransport = host.createTransport();
+
         host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
         host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
         Clip clip = host.createLauncherCursorClip(16, 16);
@@ -57,7 +58,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      * Called when we receive short MIDI message on port 0.
      */
     private void onMidi0(ShortMidiMessage msg) {
-//        print(msg);
+    print(msg);
 
         listeners.forEach(l -> l.onMessage(msg));
     }

@@ -22,12 +22,12 @@ public class DrumPad16 extends MidiListener {
     private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
             MidiChannelAndRange.of(MidiChannel.CHANNEL_0, 16, 31),
             MidiChannelAndRange.of(MidiChannel.CHANNEL_1, 16, 31),
-            MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 19, 19)
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 16, 19)
     );
 
     public DrumPad16(ControllerHost host, Clip clip) {
         super(host);
-        for (int i = 36; i < 51; i++) {
+        for (int i = 36; i <= 51; i++) {
             pads.put(i, new DrumSequencer(host, clip, i));
         }
     }
@@ -37,6 +37,7 @@ public class DrumPad16 extends MidiListener {
 
         for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
             if (midiChannelAndRange.accepts(midiMessage)) {
+                print(this.getClass().getSimpleName() + " accepted " + midiMessage);
                 return handle(midiMessage);
             }
         }
@@ -48,9 +49,10 @@ public class DrumPad16 extends MidiListener {
             case CHANNEL_3:
                 if (midiMessage.getCc() == 16) {
                     selected.set(null);
-                    drawGrid();
+                    drawEmptyGrid();
                 }
                 break;
+            case CHANNEL_0:
             case CHANNEL_1:
                 if (isPadSelected()) {
                     selected.get().accept(midiMessage);
@@ -68,12 +70,11 @@ public class DrumPad16 extends MidiListener {
         return selected.get() != null;
     }
 
-    private void drawGrid() {
-        for (int i = 0; i < 15; i++) {
-            sendTurnOff(MidiChannel.CHANNEL_0, 16 + i);
-            sendTurnOff(MidiChannel.CHANNEL_1, 16 + i);
+    private void drawEmptyGrid() {
+        for (int i = 0; i < 16; i++) {
+            sendValue(MidiChannel.CHANNEL_0, 16 + i, 0); // ring color
+            sendValue(MidiChannel.CHANNEL_1, 16 + i, 80); // LED color
         }
-
     }
 
 }
