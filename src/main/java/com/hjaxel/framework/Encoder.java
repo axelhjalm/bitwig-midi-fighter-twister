@@ -1,6 +1,7 @@
 package com.hjaxel.framework;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
+import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.MidiOut;
 
 import java.util.Optional;

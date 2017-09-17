@@ -2,12 +2,12 @@ package com.hjaxel.page.drum;
 
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ControllerHost;
+import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiChannelAndRange;
 import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.page.MidiListener;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -17,7 +17,13 @@ public class DrumPad16 extends MidiListener {
 
     private final AtomicReference<DrumSequencer> selected = new AtomicReference<>();
     private final Map<Integer, DrumSequencer> pads = new HashMap<>();
-    private final int[] encoderPadLookup = new int[]{48, 49, 50, 52, 44, 45, 46, 47, 40, 41, 42, 43, 36, 37, 38, 39};
+    private final int[] encoderPadLookup = new int[]{48, 49, 50, 51, 44, 45, 46, 47, 40, 41, 42, 43, 36, 37, 38, 39};
+
+    private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_0, 16, 31),
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_1, 16, 31),
+            MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 19, 19)
+    );
 
     public DrumPad16(ControllerHost host, Clip clip) {
         super(host);
@@ -28,11 +34,21 @@ public class DrumPad16 extends MidiListener {
 
     @Override
     protected boolean accept(MidiMessage midiMessage) {
-        print(midiMessage.toString());
+
+        for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
+            if (midiChannelAndRange.accepts(midiMessage)) {
+                return handle(midiMessage);
+            }
+        }
+        return false;
+    }
+
+    private boolean handle(MidiMessage midiMessage) {
         switch (midiMessage.getChannel()) {
             case CHANNEL_3:
-                if (midiMessage.getCc() == 16){
+                if (midiMessage.getCc() == 16) {
                     selected.set(null);
+                    drawGrid();
                 }
                 break;
             case CHANNEL_1:
@@ -40,7 +56,9 @@ public class DrumPad16 extends MidiListener {
                     selected.get().accept(midiMessage);
                 } else {
                     int pad = encoderPadLookup[midiMessage.getCc() - 16];
-                    selected.set(pads.get(pad));
+                    DrumSequencer sequencer = pads.get(pad);
+                    selected.set(sequencer);
+                    sequencer.onFocus();
                 }
         }
         return true;
@@ -50,5 +68,12 @@ public class DrumPad16 extends MidiListener {
         return selected.get() != null;
     }
 
+    private void drawGrid() {
+        for (int i = 0; i < 15; i++) {
+            sendTurnOff(MidiChannel.CHANNEL_0, 16 + i);
+            sendTurnOff(MidiChannel.CHANNEL_1, 16 + i);
+        }
+
+    }
 
 }

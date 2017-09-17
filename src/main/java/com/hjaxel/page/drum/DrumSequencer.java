@@ -1,7 +1,6 @@
 package com.hjaxel.page.drum;
 
 import com.bitwig.extension.controller.api.Clip;
-import com.bitwig.extension.controller.api.ClipLauncherSlotBank;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiChannelAndRange;
@@ -16,13 +15,11 @@ import java.util.List;
  */
 public class DrumSequencer extends MidiListener {
 
+    public static final int DEFAULT_VELOCITY = 90;
     private boolean[] activeSteps = new boolean[16];
+    private int[] velocities = new int[16];
 
-    private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
-            MidiChannelAndRange.of(MidiChannel.CHANNEL_0, 16, 31),
-            MidiChannelAndRange.of(MidiChannel.CHANNEL_1, 16, 31),
-            MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 19, 19)
-    );
+
     private final Clip clip;
     private final int note;
 
@@ -38,42 +35,55 @@ public class DrumSequencer extends MidiListener {
 
     @Override
     protected boolean accept(MidiMessage midiMessage) {
-        for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
-            if (midiChannelAndRange.accepts(midiMessage)) {
-                return handle(midiMessage);
-            }
-        }
-
-        return false;
+      return handle(midiMessage);
     }
 
     private boolean handle(MidiMessage midiMessage) {
-            int step = midiMessage.getCc() - 16;
+        int step = midiMessage.getCc() - 16;
 
-            switch (midiMessage.getChannel()) {
-                case CHANNEL_0:
-                    if (activeSteps[step]) {
-                        clip.setStep(step, note, midiMessage.getVelocity(), 0.25);
-                        break;
-                    }
-                case CHANNEL_1:
-                    if (midiMessage.getVelocity() == 127) {
-                        activeSteps[step] = true;
-                        clip.setStep(step, note, 90, 0.25);
-                        sendValue(MidiChannel.CHANNEL_1, midiMessage.getCc(), 90);
-                    }
-                    if (midiMessage.getVelocity() == 0) {
-                        activeSteps[step] = false;
-                        clip.clearStep(step, note);
-                        sendTurnOff(MidiChannel.CHANNEL_0, midiMessage.getCc());
-                        sendTurnOff(MidiChannel.CHANNEL_1, midiMessage.getCc());
-                    }
+        switch (midiMessage.getChannel()) {
+            case CHANNEL_0:
+                if (activeSteps[step]) {
+                    clip.setStep(step, note, midiMessage.getVelocity(), 0.25);
+                    velocities[step] = midiMessage.getVelocity();
                     break;
-                default:
-                    break;
-            }
+                }
+            case CHANNEL_1:
+                activeSteps[step] = !activeSteps[step];
+
+                if (activeSteps[step]) {
+                    clip.setStep(step, note, DEFAULT_VELOCITY, 0.25);
+                    velocities[step] = DEFAULT_VELOCITY;
+                } else {
+                    clip.clearStep(step, note);
+                    velocities[step] = 0;
+
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        drawGrid();
 
         return true;
     }
 
+    public void onFocus() {
+        drawGrid();
+    }
+
+    private void drawGrid() {
+        for (int i = 0; i < 15; i++) {
+            if (activeSteps[i]) {
+                sendValue(MidiChannel.CHANNEL_0, 16 + i, velocities[i]); // rotary
+                sendTurnOn(MidiChannel.CHANNEL_1, 16 + i); // led
+            } else {
+                sendTurnOff(MidiChannel.CHANNEL_0, 16 + i);
+                sendTurnOff(MidiChannel.CHANNEL_1, 16 + i);
+            }
+        }
+
+    }
 }

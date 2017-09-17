@@ -32,8 +32,12 @@ public enum MidiChannel {
         this.value = value;
     }
 
+    public int channel(){
+        return value - 175;
+    }
+
     public int value() {
-        return value;
+        return value + 1;
     }
 
     public static MidiChannel from(int channel) {
