@@ -57,10 +57,9 @@ public class DeviceTrack extends MidiListener {
 
     @Override
     protected boolean accept(MidiMessage msg) {
-        if (msg.getCc() > 15 || msg.getChannel() != MidiChannel.CHANNEL_0 || msg.getChannel() != MidiChannel.CHANNEL_1){
+        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1)){
             return false;
         }
-        print(this.getClass().getSimpleName() + " accepted " + msg);
 
         Optional<Encoder> optional = Encoder.from(msg);
         if (optional.isPresent()) {
@@ -73,6 +72,7 @@ public class DeviceTrack extends MidiListener {
         if (isTrackControl(msg)) {
             handleTrackControl(msg);
         }
+
         if (isDeviceParameter(msg)) {
             updateParameter(msg);
         }
@@ -140,7 +140,6 @@ public class DeviceTrack extends MidiListener {
 
     private void updateParameter(MidiMessage msg) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
-
         remoteControl.set(msg.getVelocity(), 128);
     }
 

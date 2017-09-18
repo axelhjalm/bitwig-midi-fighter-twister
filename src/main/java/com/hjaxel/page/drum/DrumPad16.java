@@ -11,6 +11,7 @@ import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.page.MidiListener;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -23,6 +24,9 @@ public class DrumPad16 extends MidiListener {
     private final AtomicReference<DrumSequencer> selected = new AtomicReference<>();
     private final Map<Integer, DrumSequencer> pads = new HashMap<>();
     private final int[] encoderPadLookup = new int[]{48, 49, 50, 51, 44, 45, 46, 47, 40, 41, 42, 43, 36, 37, 38, 39};
+    private final Map<Integer, Integer> noteToEncoder = new HashMap<>();
+    private final AtomicBoolean overviewMode = new AtomicBoolean(true);
+
 
     private static final List<MidiChannelAndRange> observedMessages = Arrays.asList(
             MidiChannelAndRange.of(MidiChannel.CHANNEL_0, 16, 31),
@@ -33,13 +37,17 @@ public class DrumPad16 extends MidiListener {
 
     public DrumPad16(ControllerHost host, Clip clip) {
         super(host);
+
+        for (int i = 0; i < 16; i++) {
+            noteToEncoder.put(encoderPadLookup[i], i + 16);
+        }
+
         this.clip = host.createLauncherCursorClip(127, 127);
 
         clip.setIsSubscribed(true);
 
         this.clip.playingStep().markInterested();
         this.clip.addStepDataObserver((x, y, state) -> {
-            print("i got state");
         });
 
         this.clip.getPlayStart().markInterested();
@@ -53,7 +61,8 @@ public class DrumPad16 extends MidiListener {
         this.clip.canScrollStepsForwards().markInterested();
 
 
-        PlayingNoteArrayValue playingNoteArrayValue = cursorTrack().playingNotes();
+
+        PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
         playingNoteArrayValue.markInterested();
         playingNoteArrayValue.setIsSubscribed(true);
         playingNoteArrayValue.addValueObserver(this::noteObserver);
@@ -66,15 +75,18 @@ public class DrumPad16 extends MidiListener {
     }
 
     private void noteObserver(PlayingNote[] playingNotes) {
-        List<Integer> playing = new ArrayList<>();
-        for (PlayingNote playingNote : playingNotes) {
-            playing.add(playingNote.pitch());
-            sendValue(MidiChannel.CHANNEL_1, playingNote.pitch()-16, 127);
-        }
+        if(overviewMode.get()) {
+            List<Integer> playing = new ArrayList<>();
+            for (PlayingNote playingNote : playingNotes) {
+                Integer cc = noteToEncoder.get(playingNote.pitch());
+                playing.add(cc);
+                sendValue(MidiChannel.CHANNEL_1, cc, 114);
+            }
 
-        for(int i = 31; i < 51; i++){
-            if (!playing.contains(i)){
-                sendValue(MidiChannel.CHANNEL_1, i - 16, 80);
+            for (int i = 16; i < 32; i++) {
+                if (!playing.contains(i)) {
+                    sendValue(MidiChannel.CHANNEL_1, i, 80);
+                }
             }
         }
     }
@@ -106,6 +118,7 @@ public class DrumPad16 extends MidiListener {
             case CHANNEL_3:
                 if (midiMessage.getCc() == 16) {
                     selected.set(null);
+                    overviewMode.set(true);
                     drawEmptyGrid();
                 }
                 break;
@@ -117,6 +130,7 @@ public class DrumPad16 extends MidiListener {
                     int pad = encoderPadLookup[midiMessage.getCc() - 16];
                     DrumSequencer sequencer = pads.get(pad);
                     selected.set(sequencer);
+                    overviewMode.set(false);
                     sequencer.onFocus();
                 }
         }

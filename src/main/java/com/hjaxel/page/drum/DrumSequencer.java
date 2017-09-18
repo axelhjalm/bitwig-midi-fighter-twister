@@ -50,10 +50,13 @@ public class DrumSequencer extends MidiListener {
                 if (activeSteps[step]) {
                     clip.setStep(step, note, DEFAULT_VELOCITY, 0.25);
                     velocities[step] = DEFAULT_VELOCITY;
+                    sendValue(MidiChannel.CHANNEL_0, 16 + step, velocities[step]); // rotary
+                    sendValue(MidiChannel.CHANNEL_1, 16 + step, 90); // led
                 } else {
                     clip.clearStep(step, note);
                     velocities[step] = 0;
-
+                    sendValue(MidiChannel.CHANNEL_0, 16 + step, 0);
+                    sendValue(MidiChannel.CHANNEL_1, 16 + step, 127);
                 }
                 break;
 
@@ -61,7 +64,6 @@ public class DrumSequencer extends MidiListener {
                 break;
         }
 
-        drawGrid();
 
         return true;
     }
@@ -71,7 +73,7 @@ public class DrumSequencer extends MidiListener {
     }
 
     private void drawGrid() {
-        for (int i = 0; i <= 15; i++) {
+        for (int i = 0; i < 16; i++) {
             if (activeSteps[i]) {
                 sendValue(MidiChannel.CHANNEL_0, 16 + i, velocities[i]); // rotary
                 sendValue(MidiChannel.CHANNEL_1, 16 + i, 90); // led
