@@ -4,21 +4,21 @@ import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
-import com.hjaxel.framework.Encoder;
-import com.hjaxel.framework.IntSetting;
+import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.navigation.CursorNavigator;
-import com.hjaxel.page.MidiListener;
+import com.hjaxel.page.MidiFighterTwisterControl;
 import com.hjaxel.page.device.DeviceTrack;
 import com.hjaxel.page.drum.DrumPad16;
-import com.hjaxel.page.drum.DrumSequencer;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private ControllerHost host;
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
-    private final List<MidiListener> listeners = new ArrayList<>();
+    private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -33,10 +33,11 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
         host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
-        Clip clip = host.createLauncherCursorClip(16, 16);
+//        Clip clip = host.createLauncherCursorClip(16, 16);
 
         listeners.add(new DeviceTrack(host));
-        listeners.add(new DrumPad16(host, clip));
+        listeners.add(new DrumPad16(host));
+        listeners.add(new SideButtonConsumer(host, 0));
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
@@ -58,7 +59,16 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      * Called when we receive short MIDI message on port 0.
      */
     private void onMidi0(ShortMidiMessage msg) {
-        listeners.forEach(l -> l.onMessage(msg));
+        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
+
+    }
+
+    private Consumer<Boolean> logUnhandledMessage(ShortMidiMessage msg) {
+        return b -> {
+            if(!b){
+                print(String.format("Message not handled c:%s, cc:%s, v:%s", msg.getChannel(), msg.getData1(), msg.getData2()));
+            }
+        };
     }
 
     private void print(String s) {
@@ -89,4 +99,16 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private Transport mTransport;
+
+    private class SideButtonConsumer extends MidiFighterTwisterControl {
+
+        public SideButtonConsumer(ControllerHost host, int firstEncoder) {
+            super(host, firstEncoder);
+        }
+
+        @Override
+        protected boolean accept(MidiMessage midiMessage) {
+            return midiMessage.getChannel() == MidiChannel.CHANNEL_3;
+        }
+    }
 }

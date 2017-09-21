@@ -1,13 +1,12 @@
 package com.hjaxel.page.device;
 
-import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.callback.BooleanValueChangedCallback;
 import com.bitwig.extension.controller.api.*;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.navigation.CursorNavigator;
-import com.hjaxel.page.MidiListener;
+import com.hjaxel.page.MidiFighterTwisterControl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.util.Optional;
 /**
  * Created by axel on 2017-09-16.
  */
-public class DeviceTrack extends MidiListener {
+public class DeviceTrack extends MidiFighterTwisterControl {
 
     private static final int NO_OF_CONTROLS = 8;
     private final PinnableCursorDevice cursorDevice;
@@ -24,7 +23,7 @@ public class DeviceTrack extends MidiListener {
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
 
     public DeviceTrack(ControllerHost host) {
-        super(host);
+        super(host, 0);
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
@@ -87,7 +86,7 @@ public class DeviceTrack extends MidiListener {
     private void addListener(Encoder encoder, SettableBooleanValue booleanValue) {
         booleanValue.addValueObserver(b -> {
             if (booleanValue.get()) {
-                encoder.send(midiOut(), 5);
+                encoder.send(midiOut(), 6);
             } else {
                 encoder.send(midiOut(), 0);
             }

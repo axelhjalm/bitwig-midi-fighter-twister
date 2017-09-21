@@ -3,15 +3,14 @@ package com.hjaxel.page.drum;
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiFighterTwisterColor;
 import com.hjaxel.framework.MidiMessage;
-import com.hjaxel.page.MidiListener;
-
-import java.util.Arrays;
+import com.hjaxel.page.MidiFighterTwisterControl;
 
 /**
  * Created by axel on 2017-09-16.
  */
-public class DrumSequencer extends MidiListener {
+public class DrumSequencer extends MidiFighterTwisterControl {
 
     public static final int DEFAULT_VELOCITY = 90;
     private boolean[] activeSteps = new boolean[16];
@@ -21,7 +20,7 @@ public class DrumSequencer extends MidiListener {
     private final int note;
 
     public DrumSequencer(ControllerHost host, Clip clip, int note) {
-        super(host);
+        super(host, 16);
         this.clip = clip;
         this.note = note;
         for (int i = 0; i < 16; i++) {
@@ -35,28 +34,27 @@ public class DrumSequencer extends MidiListener {
     }
 
     private boolean handle(MidiMessage midiMessage) {
-        int step = midiMessage.getCc() - 16;
+        int encoder = getEncoder(midiMessage);
 
         switch (midiMessage.getChannel()) {
             case CHANNEL_0:
-                if (activeSteps[step]) {
-                    velocities[step] = midiMessage.getVelocity();
-                    clip.setStep(step, note, velocities[step], 0.25);
-                    break;
+                if (activeSteps[encoder]) {
+                    velocities[encoder] = midiMessage.getVelocity();
+                    clip.setStep(encoder, note, velocities[encoder], 0.25);
                 }
+                break;
             case CHANNEL_1:
-                activeSteps[step] = !activeSteps[step];
-
-                if (activeSteps[step]) {
-                    clip.setStep(step, note, DEFAULT_VELOCITY, 0.25);
-                    velocities[step] = DEFAULT_VELOCITY;
-                    sendValue(MidiChannel.CHANNEL_0, 16 + step, velocities[step]); // rotary
-                    sendValue(MidiChannel.CHANNEL_1, 16 + step, 90); // led
+                activeSteps[encoder] = !activeSteps[encoder];
+                if (activeSteps[encoder]) {
+                    clip.setStep(encoder, note, DEFAULT_VELOCITY, 0.25);
+                    velocities[encoder] = DEFAULT_VELOCITY;
+                    ring(encoder, velocities[encoder]);
+                    led(encoder, MidiFighterTwisterColor.ACTIVE_PAD);
                 } else {
-                    clip.clearStep(step, note);
-                    velocities[step] = 0;
-                    sendValue(MidiChannel.CHANNEL_0, 16 + step, 0);
-                    sendValue(MidiChannel.CHANNEL_1, 16 + step, 127);
+                    clip.clearStep(encoder, note);
+                    velocities[encoder] = 0;
+                    ringOff(encoder);
+                    led(encoder, MidiFighterTwisterColor.ENCODER_DEFAULT);
                 }
                 break;
 
@@ -90,5 +88,15 @@ public class DrumSequencer extends MidiListener {
             activeSteps[i] = false;
             velocities[i] = 0;
         }
+    }
+
+    public boolean hasActiveCells() {
+        for (int i = 0; i < 16; i++) {
+            if (activeSteps[i]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

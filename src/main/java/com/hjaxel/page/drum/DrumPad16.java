@@ -1,14 +1,14 @@
 package com.hjaxel.page.drum;
 
-import com.bitwig.extension.callback.StepDataChangedCallback;
 import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.PlayingNote;
 import com.bitwig.extension.controller.api.PlayingNoteArrayValue;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiChannelAndRange;
+import com.hjaxel.framework.MidiFighterTwisterColor;
 import com.hjaxel.framework.MidiMessage;
-import com.hjaxel.page.MidiListener;
+import com.hjaxel.page.MidiFighterTwisterControl;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by axel on 2017-09-17.
  */
-public class DrumPad16 extends MidiListener {
+public class DrumPad16 extends MidiFighterTwisterControl {
 
     public static final int LOW_NOTE = 36;
     public static final int HIGH_NOTE = 51;
@@ -35,21 +35,42 @@ public class DrumPad16 extends MidiListener {
     );
     private final Clip clip;
 
-    public DrumPad16(ControllerHost host, Clip clip) {
-        super(host);
 
-        for (int i = 0; i < 16; i++) {
-            noteToEncoder.put(encoderPadLookup[i], i + 16);
-        }
+
+    public DrumPad16(ControllerHost host) {
+        super(host, 16);
+
+        populateNoteToEncoderMap();
 
         this.clip = host.createLauncherCursorClip(127, 127);
 
-        clip.setIsSubscribed(true);
-
-        this.clip.playingStep().markInterested();
         this.clip.addStepDataObserver((x, y, state) -> {
+            //TODO: record data into twister
         });
 
+        subscribeToClipEvents();
+        addNoteObserver();
+        enableObservers(true);
+
+        addPadListeners(host);
+    }
+
+    private void addPadListeners(ControllerHost host) {
+        for (int i = LOW_NOTE; i <= HIGH_NOTE; i++) {
+            pads.put(i, new DrumSequencer(host, clip, i));
+        }
+    }
+
+    private void addNoteObserver() {
+        PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
+        playingNoteArrayValue.markInterested();
+        playingNoteArrayValue.setIsSubscribed(true);
+        playingNoteArrayValue.addValueObserver(this::noteObserver);
+    }
+
+    private void subscribeToClipEvents() {
+        this.clip.setIsSubscribed(true);
+        this.clip.playingStep().markInterested();
         this.clip.getPlayStart().markInterested();
         this.clip.getPlayStop().markInterested();
         this.clip.getLoopStart().markInterested();
@@ -59,33 +80,41 @@ public class DrumPad16 extends MidiListener {
         this.clip.getAccent().markInterested();
         this.clip.canScrollStepsBackwards().markInterested();
         this.clip.canScrollStepsForwards().markInterested();
+    }
 
-
-
-        PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
-        playingNoteArrayValue.markInterested();
-        playingNoteArrayValue.setIsSubscribed(true);
-        playingNoteArrayValue.addValueObserver(this::noteObserver);
-
-        enableObservers(true);
-
-        for (int i = LOW_NOTE; i <= HIGH_NOTE; i++) {
-            pads.put(i, new DrumSequencer(host, clip, i));
+    private void populateNoteToEncoderMap() {
+        for (int i = 0; i < 16; i++) {
+            noteToEncoder.put(encoderPadLookup[i], i + 16);
         }
     }
 
+    private void drawOverview() {
+        for (int i = 0; i < 16; i++) {
+            ringOff(i);
+/*
+            int key = LOW_NOTE + i;
+            if (pads.get(key).hasActiveCells()) {
+                led(key, MidiFighterTwisterColor.ACTIVE_PAD);
+            } else {
+                led(key, MidiFighterTwisterColor.INACTIVE_PAD);
+            }
+            */
+        }
+
+    }
+
     private void noteObserver(PlayingNote[] playingNotes) {
-        if(overviewMode.get()) {
+        if (overviewMode.get()) {
             List<Integer> playing = new ArrayList<>();
             for (PlayingNote playingNote : playingNotes) {
                 Integer cc = noteToEncoder.get(playingNote.pitch());
                 playing.add(cc);
-                sendValue(MidiChannel.CHANNEL_1, cc, 114);
+                sendValue(MidiChannel.CHANNEL_1, cc, MidiFighterTwisterColor.ACTIVE_PAD.getValue());
             }
 
             for (int i = 16; i < 32; i++) {
                 if (!playing.contains(i)) {
-                    sendValue(MidiChannel.CHANNEL_1, i, 80);
+                    sendValue(MidiChannel.CHANNEL_1, i, MidiFighterTwisterColor.INACTIVE_PAD.getValue());
                 }
             }
         }
@@ -119,7 +148,14 @@ public class DrumPad16 extends MidiListener {
                 if (midiMessage.getCc() == 16) {
                     selected.set(null);
                     overviewMode.set(true);
-                    drawEmptyGrid();
+                    drawOverview();
+                }
+                if (midiMessage.getCc() == 19) {
+                    selected.set(null);
+                    overviewMode.set(true);
+                    pads.values().forEach(DrumSequencer::clear);
+                    clip.clearSteps();
+                    drawOverview();
                 }
                 break;
             case CHANNEL_0:
@@ -127,11 +163,13 @@ public class DrumPad16 extends MidiListener {
                 if (isPadSelected()) {
                     selected.get().accept(midiMessage);
                 } else {
-                    int pad = encoderPadLookup[midiMessage.getCc() - 16];
-                    DrumSequencer sequencer = pads.get(pad);
-                    selected.set(sequencer);
-                    overviewMode.set(false);
-                    sequencer.onFocus();
+                    if (midiMessage.getChannel() == MidiChannel.CHANNEL_1) {
+                        int pad = encoderPadLookup[midiMessage.getCc() - 16];
+                        DrumSequencer sequencer = pads.get(pad);
+                        selected.set(sequencer);
+                        overviewMode.set(false);
+                        sequencer.onFocus();
+                    }
                 }
         }
         return true;
@@ -141,11 +179,6 @@ public class DrumPad16 extends MidiListener {
         return selected.get() != null;
     }
 
-    private void drawEmptyGrid() {
-        for (int i = 0; i < 16; i++) {
-            sendValue(MidiChannel.CHANNEL_0, 16 + i, 0); // ring color
-            sendValue(MidiChannel.CHANNEL_1, 16 + i, 80); // LED color
-        }
-    }
+
 
 }

@@ -6,23 +6,34 @@ import com.bitwig.extension.controller.api.CursorTrack;
 import com.bitwig.extension.controller.api.MidiOut;
 import com.bitwig.extension.controller.api.Transport;
 import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiFighterTwisterColor;
 import com.hjaxel.framework.MidiMessage;
 
 /**
  * Created by axel on 2017-09-16.
  */
-public abstract class MidiListener {
+public abstract class MidiFighterTwisterControl {
 
     private final ControllerHost host;
     private final MidiOut outPort;
     private final Transport transport;
     private final CursorTrack cursorTrack;
+    private int firstEncoder;
 
-    public MidiListener(ControllerHost host) {
+    public MidiFighterTwisterControl(ControllerHost host, int firstEncoder) {
         this.host = host;
         this.outPort = host.getMidiOutPort(0);
         transport = host.createTransport();
         cursorTrack = host.createCursorTrack("2f9fce85-6a96-46a7-b8b4-ad097ee13f9d", "cursor-track", 0, 0, true);
+        this.firstEncoder = firstEncoder;
+    }
+
+    protected final int encoder(int encoder){
+        return firstEncoder + encoder;
+    }
+
+    protected final int getEncoder(MidiMessage msg){
+        return msg.getCc() - firstEncoder;
     }
 
     protected final void print(ShortMidiMessage msg) {
@@ -35,6 +46,22 @@ public abstract class MidiListener {
 
     protected final void sendTurnOff(MidiChannel channel, int cc){
         midiOut().sendMidi(channel.value(), cc, 0);
+    }
+
+    protected final void ringOff(int encoder){
+        ring(encoder, 0);
+    }
+
+    protected final void ring(int encoder, int value){
+        if(value < 0 || value > 127){
+            print(String.format("Invalid message not sent. cc: %s, v: %s", encoder, value));
+            return;
+        }
+        midiOut().sendMidi(MidiChannel.CHANNEL_0.value(), encoder(encoder), value);
+    }
+
+    protected final void led(int encoder, MidiFighterTwisterColor color){
+        midiOut().sendMidi(MidiChannel.CHANNEL_1.value(), encoder(encoder), color.getValue());
     }
 
     protected final void sendValue(MidiChannel channel, int cc, int value){
@@ -65,8 +92,8 @@ public abstract class MidiListener {
         return host;
     }
 
-    public final void onMessage(ShortMidiMessage midiMessage) {
-        accept(new MidiMessage(MidiChannel.from(midiMessage.getChannel()), midiMessage.getData1(), midiMessage.getData2()));
+    public final boolean onMessage(ShortMidiMessage midiMessage) {
+        return accept(new MidiMessage(MidiChannel.from(midiMessage.getChannel()), midiMessage.getData1(), midiMessage.getData2()));
     }
 
     protected abstract boolean accept(MidiMessage midiMessage);
