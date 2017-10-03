@@ -7,14 +7,14 @@
 	<packaging>jar</packaging>
 	<name>Midi Fighter Twister</name>
 	<version>0.1</version>
-	
+
 	<repositories>
-       <repository>
-         <id>bitwig</id>
-         <name>Bitwig Maven Repository</name>
-         <url>https://maven.bitwig.com</url>
-       </repository>
-   </repositories>
+		<repository>
+			<id>bitwig</id>
+			<name>Bitwig Maven Repository</name>
+			<url>https://maven.bitwig.com</url>
+		</repository>
+	</repositories>
 
 	<properties>
 		<bitwig.extension.directory>C:\Users\axel\Documents\Bitwig Studio\Extensions</bitwig.extension.directory>
@@ -37,20 +37,20 @@
 
 	<build>
 		<plugins>
-		   <plugin>
-               <groupId>org.apache.maven.plugins</groupId>
-               <artifactId>maven-compiler-plugin</artifactId>
-               <version>3.5.1</version>
-               <configuration>
-                  <optimize>true</optimize>
-                  <fork>true</fork>
-                  <source>1.8</source>
-                  <target>1.8</target>
-                  <encoding>UTF-8</encoding>
-                  <maxmem>1024m</maxmem>
-               </configuration>
-         </plugin>
-		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<optimize>true</optimize>
+					<fork>true</fork>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+					<maxmem>1024m</maxmem>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>com.coderplus.maven.plugins</groupId>
 				<artifactId>copy-rename-maven-plugin</artifactId>
