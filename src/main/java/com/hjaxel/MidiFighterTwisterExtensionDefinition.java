@@ -25,7 +25,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    {
       return "Midi Fighter Twister";
    }
-   
+
    @Override
    public String getAuthor()
    {
@@ -43,13 +43,13 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    {
       return DRIVER_ID;
    }
-   
+
    @Override
    public String getHardwareVendor()
    {
       return "DjTechTools";
    }
-   
+
    @Override
    public String getHardwareModel()
    {
