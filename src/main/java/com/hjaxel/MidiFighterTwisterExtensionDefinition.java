@@ -13,7 +13,6 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
 {
    private static final UUID DRIVER_ID = UUID.fromString("2cbd0a22-c0a6-44b9-a646-2da2d70939e2");
 
-   public static final String[] DEVICE_DISCOVERY_NAME = {"Midi Fighter Twister"};
    private Preferences preferences;
 
    public MidiFighterTwisterExtensionDefinition()
@@ -25,7 +24,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    {
       return "Midi Fighter Twister";
    }
-   
+
    @Override
    public String getAuthor()
    {
@@ -43,13 +42,13 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    {
       return DRIVER_ID;
    }
-   
+
    @Override
    public String getHardwareVendor()
    {
       return "DjTechTools";
    }
-   
+
    @Override
    public String getHardwareModel()
    {
@@ -79,10 +78,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    {
       if (platformType == PlatformType.WINDOWS)
       {
-         list.add(DEVICE_DISCOVERY_NAME, DEVICE_DISCOVERY_NAME);
-         // TODO: Set the correct names of the ports for auto detection on Windows platform here
-         // and uncomment this when port names are correct.
-         // list.add(new String[]{"Input Port 0"}, new String[]{"Output Port 0"});
+         list.add(new String[]{"Midi Fighter Twister"}, new String[]{"Midi Fighter Twister"});
       }
       else if (platformType == PlatformType.MAC)
       {
@@ -92,9 +88,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
       }
       else if (platformType == PlatformType.LINUX)
       {
-         // TODO: Set the correct names of the ports for auto detection on Windows platform here
-         // and uncomment this when port names are correct.
-         // list.add(new String[]{"Input Port 0"}, new String[]{"Output Port 0"});
+         list.add(new String[]{"Midi Fighter Twister MIDI 1"}, new String[]{"Midi Fighter Twister MIDI 1"});
       }
    }
 
