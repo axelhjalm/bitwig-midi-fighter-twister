@@ -41,8 +41,8 @@ public class DrumPad16 extends MidiFighterTwisterControl {
         super(host, 16);
 
         populateNoteToEncoderMap();
-
         this.clip = host.createLauncherCursorClip(127, 127);
+
 
         this.clip.addStepDataObserver((x, y, state) -> {
             //TODO: record data into twister
@@ -108,6 +108,9 @@ public class DrumPad16 extends MidiFighterTwisterControl {
             List<Integer> playing = new ArrayList<>();
             for (PlayingNote playingNote : playingNotes) {
                 Integer cc = noteToEncoder.get(playingNote.pitch());
+                if(cc == null){
+                    continue;
+                }
                 playing.add(cc);
                 sendValue(MidiChannel.CHANNEL_1, cc, MidiFighterTwisterColor.ACTIVE_PAD.getValue());
             }
