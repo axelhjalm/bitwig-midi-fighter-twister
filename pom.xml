@@ -17,7 +17,7 @@
 	</repositories>
 
 	<properties>
-		<bitwig.extension.directory>build/</bitwig.extension.directory>
+		<bitwig.extension.directory>./</bitwig.extension.directory>
 	</properties>
 
 
