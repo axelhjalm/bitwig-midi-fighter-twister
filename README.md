@@ -9,6 +9,9 @@ The extension currently offers two different views, or "pages"
 Navigation between the two pages are done by the middle side buttons. Left side button will navigate to device mode, single press on right middle button from device view will navigate to drum pad mode. Pressing middle right button again will navigate to next Midi Fighter Twister page for which no functionality is currently implemented.   
 
 ## Installation
+Latest version:
+https://github.com/axelhjalm/bitwig-midi-fighter-twister/releases/tag/0.1
+
 Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as per the documentation. Load the Midi Fighter Twister settings found in the fil mft_bitwig.mfs file
     
 ## Functionality
