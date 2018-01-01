@@ -84,6 +84,10 @@ public class DeviceTrack extends MidiFighterTwisterControl {
             if (encoder == Encoder.Play) {
                 transport().togglePlay();
             }
+            if (encoder == Encoder.PlayHead) {
+                // todo... fix this mess :)
+                transport().incPosition(msg.getVelocity() - 64, true);
+            }
         }
 
         if (isTrackControl(msg)) {

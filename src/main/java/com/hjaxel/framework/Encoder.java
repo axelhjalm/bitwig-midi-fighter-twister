@@ -36,6 +36,7 @@ public enum Encoder {
 
     ParameterPageNavigation(MidiChannel.CHANNEL_0, 4),
     DeviceNavigation(MidiChannel.CHANNEL_0, 5),
+    PlayHead(MidiChannel.CHANNEL_0, 3),
     Play(MidiChannel.CHANNEL_1, 3),
     PlayPulse(MidiChannel.CHANNEL_2, 3);
 
