@@ -61,7 +61,7 @@ public class DeviceTrack extends MidiFighterTwisterControl {
 
     private BooleanValueChangedCallback onTrackFocus() {
         return trackSelected -> {
-            if (trackSelected){
+            if (trackSelected) {
                 Encoder.Volume.send(midiOut(), midiValue(cursorTrack().getVolume()));
                 Encoder.Pan.send(midiOut(), midiValue(cursorTrack().getPan()));
             }
@@ -74,19 +74,29 @@ public class DeviceTrack extends MidiFighterTwisterControl {
 
     @Override
     protected boolean accept(MidiMessage msg) {
-        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1)){
+            print(msg.toString());
+        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1)) {
             return false;
         }
 
         Optional<Encoder> optional = Encoder.from(msg);
         if (optional.isPresent()) {
             Encoder encoder = optional.get();
-            if (encoder == Encoder.Play) {
-                transport().togglePlay();
-            }
-            if (encoder == Encoder.PlayHead) {
-                // todo... fix this mess :)
-                transport().incPosition(msg.getVelocity() - 64, true);
+            switch (encoder) {
+                case Play:
+                    transport().togglePlay();
+                    break;
+                case PlayHead:
+                    transport().incPosition(msg.getVelocity() - 64, true);
+                    break;
+                case ToggleDevice:
+                    cursorDevice.isEnabled().toggle();
+                    break;
+                case DisplayDevice:
+                    cursorDevice.isWindowOpen().toggle();
+                    break;
+                default: break;
+
             }
         }
 
@@ -136,13 +146,13 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         if (msg.getCc() == 1) {
             if (msg.getChannel() == MidiChannel.CHANNEL_1) {
                 cursorTrack().getMute().toggle();
-            } else if(msg.getChannel() == MidiChannel.CHANNEL_0){
+            } else if (msg.getChannel() == MidiChannel.CHANNEL_0) {
                 cursorTrack().getVolume().value().set(msg.getVelocity(), 128);
             }
         } else if (msg.getCc() == 2) {
             if (msg.getChannel() == MidiChannel.CHANNEL_1) {
                 cursorTrack().getPan().reset();
-            } else if(msg.getChannel() == MidiChannel.CHANNEL_0){
+            } else if (msg.getChannel() == MidiChannel.CHANNEL_0) {
                 cursorTrack().getPan().set(msg.getVelocity(), 128);
             }
         } else if (msg.getCc() == 3) {
