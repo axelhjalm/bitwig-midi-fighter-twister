@@ -37,22 +37,31 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private ControllerHost host;
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
     private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
+    private Preferences preferences;
+    private SettableRangedValue coarseControl;
+    private SettableRangedValue fineControl;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
     }
 
 
+
     @Override
     public void init() {
         host = getHost();
+
+        preferences = host.getPreferences();
+
+        coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 32, 512, 1, "", 256);
+        fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 32, 4096, 1, "", 1024);
 
         mTransport = host.createTransport();
 
         host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
         host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
 
-        listeners.add(new DeviceTrack(host));
+        listeners.add(new DeviceTrack(host, coarseControl, fineControl));
         listeners.add(new DrumPad16(host));
         listeners.add(new SideButtonConsumer(host, 0));
 

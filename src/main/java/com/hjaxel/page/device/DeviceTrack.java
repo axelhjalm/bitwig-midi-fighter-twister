@@ -39,14 +39,22 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private final PinnableCursorDevice cursorDevice;
     private final CursorRemoteControlsPage remoteControlsPage;
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
+    private final PopupBrowser popupBrowser;
+    private final SettableRangedValue coarseControl;
+    private final SettableRangedValue fineControl;
 
-    public DeviceTrack(ControllerHost host) {
+    public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl) {
         super(host, 0);
+        this.coarseControl = coarseControl;
+        this.fineControl = fineControl;
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
         cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
+
+        popupBrowser = super.host().createPopupBrowser();
+
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
         addListener(Encoder.Pan, cursorTrack().getPan());
@@ -75,7 +83,7 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     @Override
     protected boolean accept(MidiMessage msg) {
             print(msg.toString());
-        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1)) {
+        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1 || msg.getChannel() == MidiChannel.CHANNEL_4)) {
             return false;
         }
 
@@ -104,15 +112,44 @@ public class DeviceTrack extends MidiFighterTwisterControl {
             handleTrackControl(msg);
         }
 
+        if (isDeviceParameterFine(msg)) {
+            updateParameter(msg, fineControl.get() * 4196);
+        }
+
         if (isDeviceParameter(msg)) {
-            updateParameter(msg);
+            updateParameter(msg, coarseControl.get() * 512);
         }
 
         if (isCursorNavigation(msg)) {
             navigators.get(msg.getCc()).onChange(msg.getVelocity());
         }
 
+        if(isPreset(msg)){
+            cursorDevice.browseToReplaceDevice();
+            if(msg.getVelocity() == 65){
+                popupBrowser.selectNextFile();
+            } else if(msg.getVelocity() == 63){
+                popupBrowser.selectPreviousFile();
+            }
+        }
+
+        if(isCommit(msg)){
+            popupBrowser.commit();
+        }
+
         return true;
+    }
+
+    private boolean isDeviceParameterFine(MidiMessage msg) {
+        return msg.isCCInRange(8, 15) && msg.getChannel() == MidiChannel.CHANNEL_4;
+    }
+
+    private boolean isPreset(MidiMessage msg) {
+        return msg.getChannel() == MidiChannel.CHANNEL_0 && msg.getCc() == 7;
+    }
+
+    private boolean isCommit(MidiMessage msg) {
+        return msg.getChannel() == MidiChannel.CHANNEL_1 && msg.getCc() == 7;
     }
 
     private void addListener(Encoder encoder, SettableBooleanValue booleanValue) {
@@ -132,8 +169,10 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private void addParameterPageControls() {
         for (int i = 0; i < NO_OF_CONTROLS; i++) {
             RemoteControl parameter = remoteControlsPage.getParameter(i);
+
             final int x = i;
             parameter.value().addValueObserver(128, value -> midiOut().sendMidi(176, resolveEncoder(x), value));
+            parameter.value().addValueObserver(128, value -> midiOut().sendMidi(180, resolveEncoder(x), value));
         }
     }
 
@@ -169,13 +208,16 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         return navigators.containsKey(msg.getCc());
     }
 
-    private void updateParameter(MidiMessage msg) {
+    private void updateParameter(MidiMessage msg, double scale) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
-        remoteControl.set(msg.getVelocity(), 128);
+        double v = scale * remoteControl.get();
+        int direction = msg.getVelocity() == 63 ? -2 : 2;
+        double value = Math.max(0, Math.min(scale - 1, direction + v));
+        remoteControl.set(value, scale);
     }
 
     private boolean isDeviceParameter(MidiMessage msg) {
-        return msg.isCCInRange(8, 15);
+        return msg.isCCInRange(8, 15) && msg.getChannel() == MidiChannel.CHANNEL_0;
     }
 
     private int getParameterIndex(MidiMessage msg) {
