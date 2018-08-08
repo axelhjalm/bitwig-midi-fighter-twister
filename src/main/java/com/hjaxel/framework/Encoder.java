@@ -27,6 +27,7 @@ import java.util.Optional;
 public enum Encoder {
 
     Track(MidiChannel.CHANNEL_0, 0),
+    Solo(MidiChannel.CHANNEL_1, 0),
 
     Volume(MidiChannel.CHANNEL_0, 1),
     Mute(MidiChannel.CHANNEL_1, 1),
