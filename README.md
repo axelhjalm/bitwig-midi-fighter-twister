@@ -27,19 +27,26 @@ Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as
 ### Track navigation and device control
 In track navigation and device control mode, the knobs works as follows
 First row, from left to right
-1: Scroll through tracks 
-2: Track volume
+1: Scroll through tracks, press to toggle solo
+2: Track volume, press to toggle mute
 3: Track pan, press to reset to middle  
-4: Play / stop
+4: Position in track, press to play / stop
 
 Second row, from left to right
 5: Scroll through selected device preset pages
-6: Scroll through devices in selected track
-7: No functionality yet
-7: No functionality yet
+6: Scroll through devices in selected track, press to open / close device window
+7: Press to disable device
+7: Scroll to open preset browsing (presets in Bitwig only), press to select preset
 
 Third and forth row:
-Controls parameter in device preset page. Turn know to control parameter, press and turn know to control more slowly. Outer ring shows current value and is updated when stepping through parameter pages or devices.
+Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control. Outer ring shows current value and is updated when stepping through parameter pages or devices.
+
+###  Parameters (NEW IN 0.3)
+Under Settings > Controllers are setting for the Midi Fighter Twister Controller. These are:
+* Coarse and Fine Control Scale - Settable between 1 (fastest) and 12 (slowest), to change how fast macro control knobs change.
+* Navigation Cursor Scroll speed - Controls the speed for "navigation" knobs
+* Debug Log - enable or disable console debug logging (disabled by default)
+
 
 ### 16 pad drum sequencer
 This mode must be used on a clip the size of one measure (16 x 16th notes) together till Bitwig Drum Machine. Might work with other devices but has not been tested properly. 
