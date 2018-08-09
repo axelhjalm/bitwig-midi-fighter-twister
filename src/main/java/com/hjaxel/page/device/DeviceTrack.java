@@ -42,13 +42,11 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private final PopupBrowser popupBrowser;
     private final SettableRangedValue coarseControl;
     private final SettableRangedValue fineControl;
-    private final SettableRangedValue cursorSpeed;
 
     public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl, SettableRangedValue cursorSpeed) {
         super(host, 0);
         this.coarseControl = coarseControl;
         this.fineControl = fineControl;
-        this.cursorSpeed = cursorSpeed;
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
@@ -56,11 +54,6 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
 
         popupBrowser = super.host().createPopupBrowser();
-
-
-        midiInPort = host.getMidiInPort(0);
-        noteInput = midiInPort.createNoteInput("program-change");
-
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
         addListener(Encoder.Pan, cursorTrack().getPan());
