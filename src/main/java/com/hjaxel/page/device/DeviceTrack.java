@@ -42,33 +42,27 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private final PopupBrowser popupBrowser;
     private final SettableRangedValue coarseControl;
     private final SettableRangedValue fineControl;
-    private final MidiIn midiInPort;
-    private final NoteInput noteInput;
+    private final SettableRangedValue cursorSpeed;
 
-    public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl) {
+    public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl, SettableRangedValue cursorSpeed) {
         super(host, 0);
         this.coarseControl = coarseControl;
         this.fineControl = fineControl;
+        this.cursorSpeed = cursorSpeed;
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
         cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
-
         popupBrowser = super.host().createPopupBrowser();
-
-
-        midiInPort = host.getMidiInPort(0);
-        noteInput = midiInPort.createNoteInput("program-change");
-
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
         addListener(Encoder.Pan, cursorTrack().getPan());
         addListener(Encoder.PlayPulse, transport().isPlaying());
 
-        navigators.put(0, new CursorNavigator(cursorTrack(), 10));
-        navigators.put(4, new CursorNavigator(remoteControlsPage, 10));
-        navigators.put(5, new CursorNavigator(cursorDevice, 10));
+        navigators.put(0, new CursorNavigator(cursorTrack(), cursorSpeed));
+        navigators.put(4, new CursorNavigator(remoteControlsPage, cursorSpeed));
+        navigators.put(5, new CursorNavigator(cursorDevice, cursorSpeed));
 
         addParameterPageControls();
     }
@@ -88,8 +82,7 @@ public class DeviceTrack extends MidiFighterTwisterControl {
 
     @Override
     protected boolean accept(MidiMessage msg) {
-        print(msg.toString());
-        if (msg.getCc() > 15 || !(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1 || msg.getChannel() == MidiChannel.CHANNEL_4)) {
+        if (!(msg.getChannel() == MidiChannel.CHANNEL_0 || msg.getChannel() == MidiChannel.CHANNEL_1 || msg.getChannel() == MidiChannel.CHANNEL_4)) {
             return false;
         }
 
@@ -117,7 +110,6 @@ public class DeviceTrack extends MidiFighterTwisterControl {
                     break;
                 default:
                     break;
-
             }
         }
 
@@ -126,11 +118,11 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         }
 
         if (isDeviceParameterFine(msg)) {
-            updateParameter(msg, fineControl.get() * 4196);
+            updateParameter(msg, Math.pow(2, fineControl.getRaw()));
         }
 
         if (isDeviceParameter(msg)) {
-            updateParameter(msg, coarseControl.get() * 512);
+            updateParameter(msg, Math.pow(2, coarseControl.getRaw()));
         }
 
         if (isCursorNavigation(msg)) {
@@ -150,9 +142,52 @@ public class DeviceTrack extends MidiFighterTwisterControl {
             popupBrowser.commit();
         }
 
+//        if (isSends(msg)) {
+//            updateSend(msg);
+//        }
+
         return true;
     }
+/*
+    private void updateSend(MidiMessage msg) {
+        int sendNo = sendNo(msg.getCc());
 
+
+        SendBank bank = cursorTrack().sendBank();
+
+        Send send = bank.getItemAt(sendNo);
+        if (send.exists().get()) {
+            send.set(msg.getVelocity(), 128);
+        }
+    }
+
+    private int sendNo(int cc) {
+        switch (cc) {
+            case 34:
+                return 0;
+            case 35:
+                return 1;
+            case 38:
+                return 2;
+            case 39:
+                return 3;
+            case 42:
+                return 4;
+            case 43:
+                return 5;
+            case 46:
+                return 6;
+            case 47:
+                return 7;
+            default:
+                return 0;
+        }
+    }
+
+    private boolean isSends(MidiMessage msg) {
+        return msg.isCCInRange(34, 35) || msg.isCCInRange(38, 39) || msg.isCCInRange(42, 43) || msg.isCCInRange(46, 47);
+    }
+*/
     private boolean isDeviceParameterFine(MidiMessage msg) {
         return msg.isCCInRange(8, 15) && msg.getChannel() == MidiChannel.CHANNEL_4;
     }
@@ -217,6 +252,7 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     }
 
     private void updateParameter(MidiMessage msg, double scale) {
+        cursorDevice.isRemoteControlsSectionVisible().set(true);
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
         double v = scale * remoteControl.get();
         int direction = msg.getVelocity() == 63 ? -2 : 2;

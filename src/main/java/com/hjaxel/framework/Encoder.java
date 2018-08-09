@@ -22,8 +22,6 @@ import com.bitwig.extension.controller.api.MidiOut;
 
 import java.util.Optional;
 
-
-
 public enum Encoder {
 
     Track(MidiChannel.CHANNEL_0, 0),

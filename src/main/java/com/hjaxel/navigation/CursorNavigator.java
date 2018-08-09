@@ -18,10 +18,7 @@
 
 package com.hjaxel.navigation;
 
-import com.bitwig.extension.controller.api.ControllerHost;
-import com.bitwig.extension.controller.api.Cursor;
-import com.bitwig.extension.controller.api.Device;
-import com.bitwig.extension.controller.api.PinnableCursorDevice;
+import com.bitwig.extension.controller.api.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,9 +29,9 @@ public class CursorNavigator {
 
     private final AtomicInteger value = new AtomicInteger(0);
     private final Cursor cursor;
-    private final int scale;
+    private final SettableRangedValue scale;
 
-    public CursorNavigator(Cursor cursor, int scale) {
+    public CursorNavigator(Cursor cursor, SettableRangedValue scale) {
         this.cursor = cursor;
         this.scale = scale;
     }
@@ -43,7 +40,7 @@ public class CursorNavigator {
         if (cursor == null){
             return;
         }
-        if (value.getAndIncrement() % scale != 0){
+        if (value.getAndIncrement() % scale.getRaw() != 0){
             return;
         }
         if (val == 63){
