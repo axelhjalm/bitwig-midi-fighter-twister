@@ -54,7 +54,13 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
         cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
+
         popupBrowser = super.host().createPopupBrowser();
+
+
+        midiInPort = host.getMidiInPort(0);
+        noteInput = midiInPort.createNoteInput("program-change");
+
 
         addListener(Encoder.Volume, cursorTrack().getVolume());
         addListener(Encoder.Pan, cursorTrack().getPan());
@@ -110,6 +116,7 @@ public class DeviceTrack extends MidiFighterTwisterControl {
                     break;
                 default:
                     break;
+
             }
         }
 
@@ -142,52 +149,9 @@ public class DeviceTrack extends MidiFighterTwisterControl {
             popupBrowser.commit();
         }
 
-//        if (isSends(msg)) {
-//            updateSend(msg);
-//        }
-
         return true;
     }
-/*
-    private void updateSend(MidiMessage msg) {
-        int sendNo = sendNo(msg.getCc());
 
-
-        SendBank bank = cursorTrack().sendBank();
-
-        Send send = bank.getItemAt(sendNo);
-        if (send.exists().get()) {
-            send.set(msg.getVelocity(), 128);
-        }
-    }
-
-    private int sendNo(int cc) {
-        switch (cc) {
-            case 34:
-                return 0;
-            case 35:
-                return 1;
-            case 38:
-                return 2;
-            case 39:
-                return 3;
-            case 42:
-                return 4;
-            case 43:
-                return 5;
-            case 46:
-                return 6;
-            case 47:
-                return 7;
-            default:
-                return 0;
-        }
-    }
-
-    private boolean isSends(MidiMessage msg) {
-        return msg.isCCInRange(34, 35) || msg.isCCInRange(38, 39) || msg.isCCInRange(42, 43) || msg.isCCInRange(46, 47);
-    }
-*/
     private boolean isDeviceParameterFine(MidiMessage msg) {
         return msg.isCCInRange(8, 15) && msg.getChannel() == MidiChannel.CHANNEL_4;
     }
@@ -252,11 +216,11 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     }
 
     private void updateParameter(MidiMessage msg, double scale) {
-        cursorDevice.isRemoteControlsSectionVisible().set(true);
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
         double v = scale * remoteControl.get();
-        int direction = msg.getVelocity() == 63 ? -2 : 2;
-        double value = Math.max(0, Math.min(scale - 1, direction + v));
+        int direction = msg.getVelocity() == 63 ? -2 : (msg.getVelocity() == 65 ? 1 : 0);
+
+        double value = Math.max(0, Math.min(scale, direction + v));
         remoteControl.set(value, scale);
     }
 
