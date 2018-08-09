@@ -40,11 +40,12 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private Preferences preferences;
     private SettableRangedValue coarseControl;
     private SettableRangedValue fineControl;
+    private SettableEnumValue debugLogging;
+    private SettableRangedValue cursorSpeed;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
     }
-
 
 
     @Override
@@ -53,15 +54,17 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         preferences = host.getPreferences();
 
-        coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 32, 512, 1, "", 256);
-        fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 32, 4096, 1, "", 1024);
+        coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 6);
+        fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 1, 12, 1, "", 9);
+        cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
+        debugLogging = preferences.getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
         mTransport = host.createTransport();
 
         host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
         host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
 
-        listeners.add(new DeviceTrack(host, coarseControl, fineControl));
+        listeners.add(new DeviceTrack(host, coarseControl, fineControl, cursorSpeed));
         listeners.add(new DrumPad16(host));
         listeners.add(new SideButtonConsumer(host, 0));
 
@@ -85,27 +88,32 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      * Called when we receive short MIDI message on port 0.
      */
     private void onMidi0(ShortMidiMessage msg) {
+        print(msg);
         listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
 
     }
 
     private Consumer<Boolean> logUnhandledMessage(ShortMidiMessage msg) {
         return b -> {
-            if(!b){
+            if (!b) {
                 print(String.format("Message not handled c:%s, cc:%s, v:%s", msg.getChannel(), msg.getData1(), msg.getData2()));
             }
         };
     }
 
     private void print(String s) {
-        host.println(s);
+        boolean isDebug = Boolean.parseBoolean(debugLogging.get());
+        if (isDebug) {
+            host.println(s);
+        }
     }
 
     private void print(ShortMidiMessage msg) {
-        host.println(String.format("S[%s] C[%s] D1[%s] D2[%s]", msg.getStatusByte(), msg.getChannel(), msg.getData1(), msg.getData2()));
+        boolean isDebug = Boolean.parseBoolean(debugLogging.get());
+        if (isDebug) {
+            host.println(String.format("S[%s] C[%s] D1[%s] D2[%s]", msg.getStatusByte(), msg.getChannel(), msg.getData1(), msg.getData2()));
+        }
     }
-
-
 
     /**
      * Called when we receive sysex MIDI message on port 0.

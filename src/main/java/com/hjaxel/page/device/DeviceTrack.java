@@ -42,13 +42,15 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private final PopupBrowser popupBrowser;
     private final SettableRangedValue coarseControl;
     private final SettableRangedValue fineControl;
+    private SettableRangedValue cursorSpeed;
     private final MidiIn midiInPort;
     private final NoteInput noteInput;
 
-    public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl) {
+    public DeviceTrack(ControllerHost host, SettableRangedValue coarseControl, SettableRangedValue fineControl, SettableRangedValue cursorSpeed) {
         super(host, 0);
         this.coarseControl = coarseControl;
         this.fineControl = fineControl;
+        this.cursorSpeed = cursorSpeed;
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
         cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
@@ -219,8 +221,9 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private void updateParameter(MidiMessage msg, double scale) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
         double v = scale * remoteControl.get();
-        int direction = msg.getVelocity() == 63 ? -2 : 2;
-        double value = Math.max(0, Math.min(scale - 1, direction + v));
+        int direction = msg.getVelocity() == 63 ? -2 : (msg.getVelocity() == 65 ? 1 : 0);
+
+        double value = Math.max(0, Math.min(scale, direction + v));
         remoteControl.set(value, scale);
     }
 
