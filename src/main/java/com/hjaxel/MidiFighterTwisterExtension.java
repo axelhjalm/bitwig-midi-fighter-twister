@@ -22,6 +22,7 @@ import com.bitwig.extension.api.util.midi.ShortMidiMessage;
 import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
+import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.navigation.CursorNavigator;
@@ -37,11 +38,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private ControllerHost host;
     private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
     private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
-    private Preferences preferences;
-    private SettableRangedValue coarseControl;
     private SettableRangedValue fineControl;
     private SettableEnumValue debugLogging;
-    private SettableRangedValue cursorSpeed;
+    private MidiMessageParser midiMessageParser;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -52,11 +51,11 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     public void init() {
         host = getHost();
 
-        preferences = host.getPreferences();
+        Preferences preferences = host.getPreferences();
 
-        coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 7);
+        SettableRangedValue coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 7);
         fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 1, 12, 1, "", 9);
-        cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
+        SettableRangedValue cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
         debugLogging = preferences.getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
         mTransport = host.createTransport();
@@ -67,6 +66,13 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         listeners.add(new DeviceTrack(host, coarseControl, fineControl, cursorSpeed));
         listeners.add(new DrumPad16(host));
         listeners.add(new SideButtonConsumer(host, 0));
+
+        CursorTrack cursorTrack = host.createCursorTrack("2f9fce85-6a96-46a7-b8b4-ad097ee13f9d", "cursor-track", 8, 0, true);
+        PinnableCursorDevice cursorDevice = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, cursorSpeed);
+        TransportCommandFactory transportFactory = new TransportCommandFactory(host.createTransport());
+        DeviceCommandFactory deviceFactory = new DeviceCommandFactory(cursorDevice.createCursorRemoteControlsPage(8), cursorDevice, host.createPopupBrowser(), cursorSpeed);
+        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory);
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
@@ -89,8 +95,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      */
     private void onMidi0(ShortMidiMessage msg) {
         print(msg);
-        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
-
+        BitwigCommand command = midiMessageParser.parse(new MidiMessage(MidiChannel.from(msg.getChannel()), msg.getData1(), msg.getData2()));
+        command.execute();
+//        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
     }
 
     private Consumer<Boolean> logUnhandledMessage(ShortMidiMessage msg) {
