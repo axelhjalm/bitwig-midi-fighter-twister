@@ -121,6 +121,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addListener(Encoder.Pan, cursorTrack.getPan());
         addListener(Encoder.SendPan, cursorTrack.getPan());
         addListener(Encoder.PlayPulse, transport.isPlaying());
+        addListener(Encoder.SendPlayPulse, transport.isPlaying());
     }
 
 
@@ -172,7 +173,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         BitwigCommand command = midiMessageParser.parse(midiMessage ,s -> print(s));
         print(midiMessage + " == " + command.toString());
         command.execute();
-//        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
+        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
     }
 
     private Consumer<Boolean> logUnhandledMessage(ShortMidiMessage msg) {

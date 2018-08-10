@@ -77,8 +77,9 @@ public class MidiMessageParser {
 
             // transport
             case Play:
+            case SendPlay:
                 return transport.play();
-            case Scroll:
+            case SendScroll:
             case PlayHead:
                 return transport.playHeadCommand(midiMessage.direction());
 
@@ -149,6 +150,22 @@ public class MidiMessageParser {
             case Send8:
                 return track.send(7, midiMessage.getVelocity(), c);
 
+            case SendToggle1:
+                return track.send(0, 0, c);
+            case SendToggle2:
+                return track.send(1, 0, c);
+            case SendToggle3:
+                return track.send(2, 0, c);
+            case SendToggle4:
+                return track.send(3, 0, c);
+            case SendToggle5:
+                return track.send(4, 0, c);
+            case SendToggle6:
+                return track.send(5, 0, c);
+            case SendToggle7:
+                return track.send(6, 0, c);
+            case SendToggle8:
+                return track.send(7, 0, c);
             case ArrangerZoomFull:
                 return new ZoomToFitCommand(application);
             case Zoom:

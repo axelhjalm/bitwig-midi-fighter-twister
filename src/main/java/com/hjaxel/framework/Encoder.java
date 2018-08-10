@@ -38,6 +38,7 @@ public enum Encoder {
     PlayHead(MidiChannel.CHANNEL_0, 3),
     Play(MidiChannel.CHANNEL_1, 3),
     PlayPulse(MidiChannel.CHANNEL_2, 3),
+    SendPlayPulse(MidiChannel.CHANNEL_2, 33),
     DisplayDevice(MidiChannel.CHANNEL_1, 5),
     ToggleDevice(MidiChannel.CHANNEL_1, 6),
     Preset(MidiChannel.CHANNEL_0, 7),
@@ -70,7 +71,17 @@ public enum Encoder {
     Send6(MidiChannel.CHANNEL_0, 39),
     Send7(MidiChannel.CHANNEL_0, 43),
     Send8(MidiChannel.CHANNEL_0, 47),
+    SendToggle1(MidiChannel.CHANNEL_1, 34),
+    SendToggle2(MidiChannel.CHANNEL_1, 38),
+    SendToggle3(MidiChannel.CHANNEL_1, 42),
+    SendToggle4(MidiChannel.CHANNEL_1, 46),
+    SendToggle5(MidiChannel.CHANNEL_1, 35),
+    SendToggle6(MidiChannel.CHANNEL_1, 39),
+    SendToggle7(MidiChannel.CHANNEL_1, 43),
+    SendToggle8(MidiChannel.CHANNEL_1, 47),
 
+    SendScroll(MidiChannel.CHANNEL_0, 33),
+    SendPlay(MidiChannel.CHANNEL_1, 33),
     SendPan(MidiChannel.CHANNEL_0, 37),
     SendPanReset(MidiChannel.CHANNEL_1, 37),
     SendVolume(MidiChannel.CHANNEL_0, 41),
@@ -82,7 +93,6 @@ public enum Encoder {
 
     Zoom(MidiChannel.CHANNEL_0, 36),
     ArrangerZoomFull(MidiChannel.CHANNEL_1, 36),
-    Scroll(MidiChannel.CHANNEL_0, 40),
 
     Device(MidiChannel.CHANNEL_3, 0),
     Drums(MidiChannel.CHANNEL_3, 1),

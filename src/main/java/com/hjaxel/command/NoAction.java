@@ -35,6 +35,6 @@ public class NoAction implements BitwigCommand {
 
     @Override
     public String toString() {
-        return "NoAction " + midiMessage.toString();
+        return "NoAction";
     }
 }
