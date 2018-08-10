@@ -47,6 +47,20 @@ Under Settings > Controllers are setting for the Midi Fighter Twister Controller
 * Navigation Cursor Scroll speed - Controls the speed for "navigation" knobs
 * Debug Log - enable or disable console debug logging (disabled by default)
 
+### Mix / Send (NEW IN 0.5)
+Press BL (Bottom Left button) to go to mix page. Press top left to go to device page
+
+The eight rightmost knobs controls Send 1 - Send 8, press to set value of that send to 0
+1: Scroll through tracks
+2: Position in track, press to play / stop
+5: Zoom in / out in selected window (arranger / clip)
+6: Track pan, press to reset to middle  
+10: Track volume, press to toggle mute
+13: Start of loop section, press to toggle loop
+14: End of loop section, press to toggle loop
+
+
+
 
 ### 16 pad drum sequencer
 This mode must be used on a clip the size of one measure (16 x 16th notes) together till Bitwig Drum Machine. Might work with other devices but has not been tested properly. 
