@@ -24,8 +24,12 @@ import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
 import com.hjaxel.command.BitwigCommand;
+import com.hjaxel.command.factory.DeviceCommandFactory;
+import com.hjaxel.command.factory.TrackCommandFactory;
+import com.hjaxel.command.factory.TransportCommandFactory;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiChannel;
+import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
 import com.hjaxel.page.MidiFighterTwisterControl;
 import com.hjaxel.page.drum.DrumPad16;
@@ -83,7 +87,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addParameterPageControls();
         addSendObservers();
 
-        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication());
+        MidiFighterTwister twister = new MidiFighterTwister(midiOut);
+        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory,
+                deviceFactory, settings, host.createApplication(), twister);
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }

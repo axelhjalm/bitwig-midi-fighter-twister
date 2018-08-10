@@ -88,6 +88,10 @@ public enum Encoder {
     Drums(MidiChannel.CHANNEL_3, 1),
     Mixer(MidiChannel.CHANNEL_3, 2),
 
+    GotoMixer(MidiChannel.CHANNEL_3, 10),
+    GotoDrums(MidiChannel.CHANNEL_3, 10),
+    GotoDevice(MidiChannel.CHANNEL_3, 20),
+
     ;
 
 

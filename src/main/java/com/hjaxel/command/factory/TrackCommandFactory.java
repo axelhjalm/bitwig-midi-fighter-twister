@@ -16,9 +16,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-package com.hjaxel;
+package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.CursorTrack;
+import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
 import com.hjaxel.navigation.CursorNavigator;

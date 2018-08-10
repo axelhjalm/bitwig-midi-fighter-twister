@@ -21,7 +21,13 @@ package com.hjaxel;
 import com.bitwig.extension.controller.api.Application;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
+import com.hjaxel.command.application.ZoomCommand;
+import com.hjaxel.command.application.ZoomToFitCommand;
+import com.hjaxel.command.factory.DeviceCommandFactory;
+import com.hjaxel.command.factory.TrackCommandFactory;
+import com.hjaxel.command.factory.TransportCommandFactory;
 import com.hjaxel.framework.Encoder;
+import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
 
 import java.util.function.Consumer;
@@ -33,14 +39,16 @@ public class MidiMessageParser {
     private final DeviceCommandFactory device;
     private final UserSettings settings;
     private Application application;
+    private final MidiFighterTwister twister;
 
     public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
-                             UserSettings settings, Application application) {
+                             UserSettings settings, Application application, MidiFighterTwister twister) {
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
         this.settings = settings;
         this.application = application;
+        this.twister = twister;
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
@@ -55,18 +63,22 @@ public class MidiMessageParser {
                 return track.scroll(midiMessage.direction());
             case Mute:
                 return track.mute();
-            case Pan:
-                return track.pan(midiMessage.getVelocity());
-            case Volume:
-                return track.volume(midiMessage.getVelocity());
             case Solo:
                 return track.solo();
+            case Pan:
+            case SendPan:
+                return track.pan(midiMessage.getVelocity());
+            case Volume:
+            case SendVolume:
+                return track.volume(midiMessage.getVelocity());
             case PanReset:
+            case SendPanReset:
                 return track.panReset();
 
             // transport
             case Play:
                 return transport.play();
+            case Scroll:
             case PlayHead:
                 return transport.playHeadCommand(midiMessage.direction());
 
@@ -137,20 +149,12 @@ public class MidiMessageParser {
             case Send8:
                 return track.send(7, midiMessage.getVelocity(), c);
 
-            case Scroll:
-                return transport.playHeadCommand(midiMessage.direction());
             case ArrangerZoomFull:
-                return () -> application.zoomToFit();
+                return new ZoomToFitCommand(application);
             case Zoom:
-                return () -> {
-                    if (midiMessage.direction() < 0) {
-                        application.zoomOut();
-                    }
-                    if (midiMessage.direction() > 0) {
-                        application.zoomIn();
-                    }
-                };
+                return new ZoomCommand(application, midiMessage.direction());
 
+            // Loop Control
             case LoopStart:
                 return transport.loopStart(midiMessage.direction());
             case LoopStop:
@@ -158,19 +162,26 @@ public class MidiMessageParser {
             case LoopToggle1:
             case LoopToggle2:
                 return transport.loopToggle();
-            case SendVolume:
-                return track.volume(midiMessage.getVelocity());
-            case SendPan:
-                return track.pan(midiMessage.getVelocity());
-            case SendPanReset:
-                return track.panReset();
 
+            // Function toggles
             case Device:
                 return () -> application.toggleDevices();
             case Drums:
-                return new NoAction(midiMessage);
+                return () -> {};
             case Mixer:
                 return () -> application.toggleMixer();
+
+            case GotoMixer:
+                return () ->
+                {
+                    twister.selectBank3();
+                    application.toggleMixer();
+                };
+            case GotoDevice:
+                return () -> {
+                    twister.selectBank1();
+                    application.toggleDevices();
+                };
 
         }
 

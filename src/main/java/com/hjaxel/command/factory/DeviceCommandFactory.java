@@ -16,9 +16,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-package com.hjaxel;
+package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.*;
+import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.device.*;
 import com.hjaxel.command.transport.ScrollPlayHeadCommand;

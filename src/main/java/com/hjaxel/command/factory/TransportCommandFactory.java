@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-package com.hjaxel;
+package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.Transport;
 import com.hjaxel.command.BitwigCommand;
