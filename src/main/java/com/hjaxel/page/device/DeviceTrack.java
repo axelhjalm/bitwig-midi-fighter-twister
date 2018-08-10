@@ -60,9 +60,9 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         addListener(Encoder.PlayPulse, transport().isPlaying());
 
 
-        navigators.put(0, new CursorNavigator(cursorTrack(), cursorSpeed));
-        navigators.put(4, new CursorNavigator(remoteControlsPage, cursorSpeed));
-        navigators.put(5, new CursorNavigator(cursorDevice, cursorSpeed));
+//        navigators.put(0, new CursorNavigator(cursorTrack(), cursorSpeed));
+//        navigators.put(4, new CursorNavigator(remoteControlsPage, cursorSpeed));
+//        navigators.put(5, new CursorNavigator(cursorDevice, cursorSpeed));
 
         addParameterPageControls();
     }

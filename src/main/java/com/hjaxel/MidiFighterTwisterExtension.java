@@ -27,9 +27,7 @@ import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiMessage;
-import com.hjaxel.navigation.CursorNavigator;
 import com.hjaxel.page.MidiFighterTwisterControl;
-import com.hjaxel.page.device.DeviceTrack;
 import com.hjaxel.page.drum.DrumPad16;
 
 import java.util.*;
@@ -38,13 +36,16 @@ import java.util.function.Consumer;
 public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private ControllerHost host;
-    private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
+    private Transport mTransport;
+//    private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
     private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
     private SettableEnumValue debugLogging;
     private MidiMessageParser midiMessageParser;
     private CursorTrack cursorTrack;
     private MidiOut midiOut;
     private CursorRemoteControlsPage remoteControlsPage;
+    private PinnableCursorDevice device;
+    private Mixer mixer;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -54,49 +55,65 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     @Override
     public void init() {
         host = getHost();
+        setupMidiChannels();
 
-        Preferences preferences = host.getPreferences();
+        mixer = host.createMixer();
 
-        SettableRangedValue coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 7);
-        SettableRangedValue fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 1, 12, 1, "", 9);
-        SettableRangedValue cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
-        UserSettings settings = new UserSettings(fineControl, coarseControl);
-        debugLogging = preferences.getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
+        UserSettings settings = createSettings(host.getPreferences());
+        debugLogging = host.getPreferences().getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
         mTransport = host.createTransport();
-
-        host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
-        host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
 
         //listeners.add(new DeviceTrack(host, coarseControl, fineControl, cursorSpeed));
         listeners.add(new DrumPad16(host));
         listeners.add(new SideButtonConsumer(host, 0));
 
-        cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
-
         Transport transport = host.createTransport();
+        transport.isArrangerLoopEnabled().markInterested();
+        createCursorTrack();
         addListeners(transport);
 
-        cursorTrack.addIsSelectedInMixerObserver(onTrackFocus());
-        cursorTrack.addIsSelectedInEditorObserver(onTrackFocus());
 
-        PinnableCursorDevice cursorDevice = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, cursorSpeed);
+        device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, settings);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
-        remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(8);
-        DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, cursorDevice, host.createPopupBrowser(), cursorSpeed);
+        remoteControlsPage = device.createCursorRemoteControlsPage(8);
+        DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
 
         addParameterPageControls();
+        addSendObservers();
 
-        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings);
-        midiOut = host.getMidiOutPort(0);
+        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication());
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
 
+
+
+    private void createCursorTrack() {
+        cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
+        cursorTrack.addIsSelectedInMixerObserver(onTrackFocus());
+        cursorTrack.addIsSelectedInEditorObserver(onTrackFocus());
+    }
+
+    private void setupMidiChannels() {
+        midiOut = host.getMidiOutPort(0);
+        host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
+        host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
+    }
+
+    private UserSettings createSettings(Preferences preferences) {
+        SettableRangedValue coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 7);
+        SettableRangedValue fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 1, 12, 1, "", 9);
+        SettableRangedValue cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
+        return new UserSettings(fineControl, coarseControl, cursorSpeed);
+    }
+
     private void addListeners(Transport transport) {
         addListener(Encoder.Volume, cursorTrack.getVolume());
+        addListener(Encoder.SendVolume, cursorTrack.getVolume());
         addListener(Encoder.Pan, cursorTrack.getPan());
+        addListener(Encoder.SendPan, cursorTrack.getPan());
         addListener(Encoder.PlayPulse, transport.isPlaying());
     }
 
@@ -146,7 +163,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      */
     private void onMidi0(ShortMidiMessage msg) {
         MidiMessage midiMessage = new MidiMessage(MidiChannel.from(msg.getChannel()), msg.getData1(), msg.getData2());
-        BitwigCommand command = midiMessageParser.parse(midiMessage);
+        BitwigCommand command = midiMessageParser.parse(midiMessage ,s -> print(s));
         print(midiMessage + " == " + command.toString());
         command.execute();
 //        listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
@@ -164,6 +181,18 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         return 8 + x;
     }
 
+
+    private void addSendObservers() {
+        SendBank sendBank = cursorTrack.sendBank();
+        sendBank.getItemAt(0).value().addValueObserver(128, value -> midiOut.sendMidi(176, 34, value));
+        sendBank.getItemAt(1).value().addValueObserver(128, value -> midiOut.sendMidi(176, 38, value));
+        sendBank.getItemAt(2).value().addValueObserver(128, value -> midiOut.sendMidi(176, 42, value));
+        sendBank.getItemAt(3).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46, value));
+        sendBank.getItemAt(4).value().addValueObserver(128, value -> midiOut.sendMidi(176, 35, value));
+        sendBank.getItemAt(5).value().addValueObserver(128, value -> midiOut.sendMidi(176, 39, value));
+        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 43, value));
+        sendBank.getItemAt(7).value().addValueObserver(128, value -> midiOut.sendMidi(176, 47, value));
+    }
 
     private void addParameterPageControls() {
         for (int i = 0; i < 8; i++) {
@@ -206,7 +235,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             mTransport.record();
     }
 
-    private Transport mTransport;
+
 
     private class SideButtonConsumer extends MidiFighterTwisterControl {
 

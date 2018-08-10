@@ -59,7 +59,39 @@ public enum Encoder {
     ParameterFine5(MidiChannel.CHANNEL_4, 12),
     ParameterFine6(MidiChannel.CHANNEL_4, 13),
     ParameterFine7(MidiChannel.CHANNEL_4, 14),
-    ParameterFine8(MidiChannel.CHANNEL_4, 15);
+    ParameterFine8(MidiChannel.CHANNEL_4, 15),
+
+    SendTrackScroll(MidiChannel.CHANNEL_0, 32),
+    Send1(MidiChannel.CHANNEL_0, 34),
+    Send2(MidiChannel.CHANNEL_0, 38),
+    Send3(MidiChannel.CHANNEL_0, 42),
+    Send4(MidiChannel.CHANNEL_0, 46),
+    Send5(MidiChannel.CHANNEL_0, 35),
+    Send6(MidiChannel.CHANNEL_0, 39),
+    Send7(MidiChannel.CHANNEL_0, 43),
+    Send8(MidiChannel.CHANNEL_0, 47),
+
+    SendPan(MidiChannel.CHANNEL_0, 37),
+    SendPanReset(MidiChannel.CHANNEL_1, 37),
+    SendVolume(MidiChannel.CHANNEL_0, 41),
+
+    LoopStart(MidiChannel.CHANNEL_0, 44),
+    LoopStop(MidiChannel.CHANNEL_0, 45),
+    LoopToggle1(MidiChannel.CHANNEL_1, 44),
+    LoopToggle2(MidiChannel.CHANNEL_1, 45),
+
+    Zoom(MidiChannel.CHANNEL_0, 36),
+    ArrangerZoomFull(MidiChannel.CHANNEL_1, 36),
+    Scroll(MidiChannel.CHANNEL_0, 40),
+
+    Device(MidiChannel.CHANNEL_3, 0),
+    Drums(MidiChannel.CHANNEL_3, 1),
+    Mixer(MidiChannel.CHANNEL_3, 2),
+
+    ;
+
+
+
 
     private final MidiChannel channel;
     private final int cc;

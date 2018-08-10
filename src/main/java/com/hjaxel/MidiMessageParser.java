@@ -18,10 +18,13 @@
 
 package com.hjaxel;
 
+import com.bitwig.extension.controller.api.Application;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiMessage;
+
+import java.util.function.Consumer;
 
 public class MidiMessageParser {
 
@@ -29,23 +32,23 @@ public class MidiMessageParser {
     private final TransportCommandFactory transport;
     private final DeviceCommandFactory device;
     private final UserSettings settings;
+    private Application application;
 
-    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device, 
-                             UserSettings settings) {
+    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
+                             UserSettings settings, Application application) {
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
         this.settings = settings;
+        this.application = application;
     }
 
-    public BitwigCommand parse(MidiMessage midiMessage) {
-
+    public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
         return Encoder.from(midiMessage)
-                .map(encoder -> toCommand(encoder, midiMessage)).orElse(new NoAction(midiMessage));
-
+                .map(encoder -> toCommand(encoder, midiMessage, c)).orElse(new NoAction(midiMessage));
     }
 
-    private BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage) {
+    private BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage, Consumer<String> c) {
         switch (encoder) {
             // track
             case Track:
@@ -113,6 +116,62 @@ public class MidiMessageParser {
                 return device.parameter(6, settings.fine(), midiMessage.direction());
             case ParameterFine8:
                 return device.parameter(7, settings.fine(), midiMessage.direction());
+
+
+            case SendTrackScroll:
+                return track.scroll(midiMessage.direction());
+            case Send1:
+                return track.send(0, midiMessage.getVelocity(), c);
+            case Send2:
+                return track.send(1, midiMessage.getVelocity(), c);
+            case Send3:
+                return track.send(2, midiMessage.getVelocity(), c);
+            case Send4:
+                return track.send(3, midiMessage.getVelocity(), c);
+            case Send5:
+                return track.send(4, midiMessage.getVelocity(), c);
+            case Send6:
+                return track.send(5, midiMessage.getVelocity(), c);
+            case Send7:
+                return track.send(6, midiMessage.getVelocity(), c);
+            case Send8:
+                return track.send(7, midiMessage.getVelocity(), c);
+
+            case Scroll:
+                return transport.playHeadCommand(midiMessage.direction());
+            case ArrangerZoomFull:
+                return () -> application.zoomToFit();
+            case Zoom:
+                return () -> {
+                    if (midiMessage.direction() < 0) {
+                        application.zoomOut();
+                    }
+                    if (midiMessage.direction() > 0) {
+                        application.zoomIn();
+                    }
+                };
+
+            case LoopStart:
+                return transport.loopStart(midiMessage.direction());
+            case LoopStop:
+                return transport.loopEnd(midiMessage.direction());
+            case LoopToggle1:
+            case LoopToggle2:
+                return transport.loopToggle();
+            case SendVolume:
+                return track.volume(midiMessage.getVelocity());
+            case SendPan:
+                return track.pan(midiMessage.getVelocity());
+            case SendPanReset:
+                return track.panReset();
+
+            case Device:
+                return () -> application.toggleDevices();
+            case Drums:
+                return new NoAction(midiMessage);
+            case Mixer:
+                return () -> application.toggleMixer();
+
         }
 
         throw new IllegalStateException("Unhandled message " + midiMessage);

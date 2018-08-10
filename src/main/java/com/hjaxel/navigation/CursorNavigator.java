@@ -19,6 +19,7 @@
 package com.hjaxel.navigation;
 
 import com.bitwig.extension.controller.api.*;
+import com.hjaxel.UserSettings;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,18 +30,18 @@ public class CursorNavigator {
 
     private final AtomicInteger value = new AtomicInteger(0);
     private final Cursor cursor;
-    private final SettableRangedValue scale;
+    private final UserSettings settings;
 
-    public CursorNavigator(Cursor cursor, SettableRangedValue scale) {
+    public CursorNavigator(Cursor cursor, UserSettings settings) {
         this.cursor = cursor;
-        this.scale = scale;
+        this.settings = settings;
     }
 
     public void onChange(int val){
         if (cursor == null){
             return;
         }
-        if (value.getAndIncrement() % scale.getRaw() != 0){
+        if (value.getAndIncrement() % settings.getNavigationSpeed() != 0){
             return;
         }
         if (val == 63){

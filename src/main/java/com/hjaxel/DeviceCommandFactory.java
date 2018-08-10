@@ -32,12 +32,12 @@ public class DeviceCommandFactory {
     private final CursorNavigator devices;
     private final CursorNavigator parameters;
 
-    public DeviceCommandFactory(CursorRemoteControlsPage remoteControlsPage, CursorDevice cursorDevice, PopupBrowser browser, SettableRangedValue navigation) {
+    public DeviceCommandFactory(CursorRemoteControlsPage remoteControlsPage, CursorDevice cursorDevice, PopupBrowser browser, UserSettings settings) {
         this.remoteControlsPage = remoteControlsPage;
         this.cursorDevice = cursorDevice;
         this.browser = browser;
-        this.devices = new CursorNavigator(cursorDevice, navigation);
-        this.parameters = new CursorNavigator(remoteControlsPage, navigation);
+        this.devices = new CursorNavigator(cursorDevice, settings);
+        this.parameters = new CursorNavigator(remoteControlsPage, settings);
     }
 
     public ChangeParameterCommand parameter(int index, double scale, int delta){

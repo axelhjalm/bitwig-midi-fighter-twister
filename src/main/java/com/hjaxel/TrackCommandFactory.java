@@ -19,19 +19,20 @@
 package com.hjaxel;
 
 import com.bitwig.extension.controller.api.CursorTrack;
-import com.bitwig.extension.controller.api.SettableRangedValue;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
 import com.hjaxel.navigation.CursorNavigator;
+
+import java.util.function.Consumer;
 
 public class TrackCommandFactory {
 
     private final CursorNavigator trackNavigation;
     private CursorTrack track;
 
-    public TrackCommandFactory(CursorTrack track, SettableRangedValue navigation) {
+    public TrackCommandFactory(CursorTrack track, UserSettings settings) {
         this.track = track;
-        trackNavigation = new CursorNavigator(track, navigation);
+        trackNavigation = new CursorNavigator(track, settings);
     }
 
     public PanCommand pan(double value){
@@ -56,5 +57,9 @@ public class TrackCommandFactory {
 
     public BitwigCommand scroll(int direction) {
         return () -> trackNavigation.onChange(64 + direction);
+    }
+
+    public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
+        return new SendCommand(track, sendNo, velocity, c);
     }
 }

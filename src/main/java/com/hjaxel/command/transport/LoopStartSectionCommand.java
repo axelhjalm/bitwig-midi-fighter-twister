@@ -16,40 +16,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-package com.hjaxel;
+package com.hjaxel.command.transport;
 
 import com.bitwig.extension.controller.api.Transport;
 import com.hjaxel.command.BitwigCommand;
-import com.hjaxel.command.transport.LoopEndSectionCommand;
-import com.hjaxel.command.transport.LoopStartSectionCommand;
-import com.hjaxel.command.transport.PlayCommand;
-import com.hjaxel.command.transport.ScrollPlayHeadCommand;
 
-public class TransportCommandFactory {
+public class LoopStartSectionCommand implements BitwigCommand {
 
-    private Transport transport;
+    private final Transport transport;
+    private final double delta;
 
-    public TransportCommandFactory(Transport transport) {
+    public LoopStartSectionCommand(Transport transport, double delta) {
         this.transport = transport;
+        this.delta = delta;
     }
 
-    public ScrollPlayHeadCommand playHeadCommand(int delta){
-        return new ScrollPlayHeadCommand(transport, delta);
-    }
-
-    public BitwigCommand loopStart(int value){
-        return new LoopStartSectionCommand(transport, value);
-    }
-
-    public BitwigCommand loopEnd(int value){
-        return new LoopEndSectionCommand(transport, value);
-    }
-
-    public BitwigCommand play() {
-        return new PlayCommand(transport);
-    }
-
-    public BitwigCommand loopToggle() {
-        return () -> transport.isArrangerLoopEnabled().toggle();
+    @Override
+    public void execute() {
+        this.transport.getInPosition().inc(delta);
     }
 }
