@@ -28,16 +28,20 @@ public class MidiMessageParser {
     private final TrackCommandFactory track;
     private final TransportCommandFactory transport;
     private final DeviceCommandFactory device;
+    private final UserSettings settings;
 
-    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device) {
+    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device, 
+                             UserSettings settings) {
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
+        this.settings = settings;
     }
 
     public BitwigCommand parse(MidiMessage midiMessage) {
+
         return Encoder.from(midiMessage)
-                .map(encoder -> toCommand(encoder, midiMessage)).orElse(new NoAction());
+                .map(encoder -> toCommand(encoder, midiMessage)).orElse(new NoAction(midiMessage));
 
     }
 
@@ -45,7 +49,7 @@ public class MidiMessageParser {
         switch (encoder) {
             // track
             case Track:
-                track.scroll(midiMessage.direction());
+                return track.scroll(midiMessage.direction());
             case Mute:
                 return track.mute();
             case Pan:
@@ -72,22 +76,43 @@ public class MidiMessageParser {
                 return device.toggleDisplayDeviceCommand();
             case ToggleDevice:
                 return device.toggleDeviceCommand();
+            case Preset:
+                return device.scrollPresetsCommand(midiMessage.direction());
+            case PresetCommit:
+                return device.selectPresetsCommand();
             case Parameter1:
-                return device.parameter(1, 128, midiMessage.direction());
+                return device.parameter(0, settings.coarse(), midiMessage.direction());
             case Parameter2:
-                return device.parameter(2, 128, midiMessage.direction());
+                return device.parameter(1, settings.coarse(), midiMessage.direction());
             case Parameter3:
-                return device.parameter(3, 128, midiMessage.direction());
+                return device.parameter(2, settings.coarse(), midiMessage.direction());
             case Parameter4:
-                return device.parameter(4, 128, midiMessage.direction());
+                return device.parameter(3, settings.coarse(), midiMessage.direction());
             case Parameter5:
-                return device.parameter(5, 128, midiMessage.direction());
+                return device.parameter(4, settings.coarse(), midiMessage.direction());
             case Parameter6:
-                return device.parameter(6, 128, midiMessage.direction());
+                return device.parameter(5, settings.coarse(), midiMessage.direction());
             case Parameter7:
-                return device.parameter(7, 128, midiMessage.direction());
+                return device.parameter(6, settings.coarse(), midiMessage.direction());
             case Parameter8:
-                return device.parameter(8, 128, midiMessage.direction());
+                return device.parameter(7, settings.coarse(), midiMessage.direction());
+
+            case ParameterFine1:
+                return device.parameter(0, settings.fine(), midiMessage.direction());
+            case ParameterFine2:
+                return device.parameter(1, settings.fine(), midiMessage.direction());
+            case ParameterFine3:
+                return device.parameter(2, settings.fine(), midiMessage.direction());
+            case ParameterFine4:
+                return device.parameter(3, settings.fine(), midiMessage.direction());
+            case ParameterFine5:
+                return device.parameter(4, settings.fine(), midiMessage.direction());
+            case ParameterFine6:
+                return device.parameter(5, settings.fine(), midiMessage.direction());
+            case ParameterFine7:
+                return device.parameter(6, settings.fine(), midiMessage.direction());
+            case ParameterFine8:
+                return device.parameter(7, settings.fine(), midiMessage.direction());
         }
 
         throw new IllegalStateException("Unhandled message " + midiMessage);

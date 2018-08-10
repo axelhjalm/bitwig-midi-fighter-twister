@@ -38,8 +38,11 @@ public enum Encoder {
     PlayHead(MidiChannel.CHANNEL_0, 3),
     Play(MidiChannel.CHANNEL_1, 3),
     PlayPulse(MidiChannel.CHANNEL_2, 3),
-    ToggleDevice(MidiChannel.CHANNEL_1, 6),
     DisplayDevice(MidiChannel.CHANNEL_1, 5),
+    ToggleDevice(MidiChannel.CHANNEL_1, 6),
+    Preset(MidiChannel.CHANNEL_0, 7),
+    PresetCommit(MidiChannel.CHANNEL_1, 7),
+
     Parameter1(MidiChannel.CHANNEL_0, 8),
     Parameter2(MidiChannel.CHANNEL_0, 9),
     Parameter3(MidiChannel.CHANNEL_0, 10),
@@ -47,7 +50,16 @@ public enum Encoder {
     Parameter5(MidiChannel.CHANNEL_0, 12),
     Parameter6(MidiChannel.CHANNEL_0, 13),
     Parameter7(MidiChannel.CHANNEL_0, 14),
-    Parameter8(MidiChannel.CHANNEL_0, 15);
+    Parameter8(MidiChannel.CHANNEL_0, 15),
+
+    ParameterFine1(MidiChannel.CHANNEL_4, 8),
+    ParameterFine2(MidiChannel.CHANNEL_4, 9),
+    ParameterFine3(MidiChannel.CHANNEL_4, 10),
+    ParameterFine4(MidiChannel.CHANNEL_4, 11),
+    ParameterFine5(MidiChannel.CHANNEL_4, 12),
+    ParameterFine6(MidiChannel.CHANNEL_4, 13),
+    ParameterFine7(MidiChannel.CHANNEL_4, 14),
+    ParameterFine8(MidiChannel.CHANNEL_4, 15);
 
     private final MidiChannel channel;
     private final int cc;

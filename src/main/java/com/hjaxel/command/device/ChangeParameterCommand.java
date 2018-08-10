@@ -30,6 +30,7 @@ public class ChangeParameterCommand implements BitwigCommand {
         this.remoteControl = remoteControl;
         this.scale = scale;
         this.delta = delta;
+
     }
 
     @Override
@@ -38,5 +39,10 @@ public class ChangeParameterCommand implements BitwigCommand {
         int direction = delta == -1 ? -2 : 1;
         double value = Math.max(0, Math.min(scale, direction + v));
         remoteControl.set(value, scale);
+    }
+
+    @Override
+    public String toString() {
+        return "Parameter " + remoteControl.name().get() +", delta " + delta;
     }
 }

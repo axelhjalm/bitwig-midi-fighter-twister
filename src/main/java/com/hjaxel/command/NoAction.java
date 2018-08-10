@@ -18,9 +18,23 @@
 
 package com.hjaxel.command;
 
+import com.hjaxel.framework.MidiMessage;
+
 public class NoAction implements BitwigCommand {
+    private MidiMessage midiMessage;
+
+    public NoAction(MidiMessage midiMessage) {
+
+        this.midiMessage = midiMessage;
+    }
+
     @Override
     public void execute() {
 
+    }
+
+    @Override
+    public String toString() {
+        return "NoAction " + midiMessage.toString();
     }
 }

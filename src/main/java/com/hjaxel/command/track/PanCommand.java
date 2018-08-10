@@ -33,6 +33,6 @@ public class PanCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorTrack.getPan().set(value);
+        cursorTrack.getPan().set(value, 128);
     }
 }

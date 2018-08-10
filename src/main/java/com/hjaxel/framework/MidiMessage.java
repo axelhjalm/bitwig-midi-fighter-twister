@@ -46,8 +46,8 @@ public class MidiMessage {
     }
 
     public int direction(){
-        if (cc == 63 || cc == 65){
-            return cc - 64;
+        if (velocity == 63 || velocity == 65){
+            return velocity - 64;
         }
 
         return 0;

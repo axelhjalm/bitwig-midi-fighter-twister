@@ -33,6 +33,6 @@ public class VolumeCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorTrack.getVolume().set(value);
+        cursorTrack.getVolume().set(value, 128);
     }
 }
