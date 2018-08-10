@@ -16,43 +16,29 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 
-package com.hjaxel.navigation;
+package com.hjaxel.command.application;
 
-import com.bitwig.extension.controller.api.*;
-import com.hjaxel.UserSettings;
+import com.bitwig.extension.controller.api.Application;
+import com.hjaxel.command.BitwigCommand;
 
-import java.util.concurrent.atomic.AtomicInteger;
+public class ZoomCommand implements BitwigCommand {
 
-/**
- * Created by axel on 2017-09-16.
- */
-public class CursorNavigator {
+    private Application application;
+    private int direction;
 
-    private final AtomicInteger value = new AtomicInteger(0);
-    private final Cursor cursor;
-    private final UserSettings settings;
-
-    public CursorNavigator(Cursor cursor, UserSettings settings) {
-        this.cursor = cursor;
-        this.settings = settings;
+    public ZoomCommand(Application application, int direction) {
+        this.application = application;
+        this.direction = direction;
     }
 
-    public void onChange(int val){
-        if (cursor == null){
-            return;
+    @Override
+    public void execute() {
+        if (direction < 0) {
+            application.zoomOut();
         }
-        if (value.getAndIncrement() % settings.getNavigationSpeed() != 0){
-            return;
+        if (direction > 0) {
+            application.zoomIn();
         }
-        if (val == 63){
-            cursor.selectPrevious();
-        }
-
-        if (val == 65){
-            cursor.selectNext();
-        }
-
     }
-
 
 }

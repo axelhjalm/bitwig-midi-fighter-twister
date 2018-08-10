@@ -45,6 +45,14 @@ public class MidiMessage {
         return velocity;
     }
 
+    public int direction(){
+        if (velocity == 63 || velocity == 65){
+            return velocity - 64;
+        }
+
+        return 0;
+    }
+
     public boolean isCCInRange(int from, int to) {
         return cc >= from && cc <= to;
     }
