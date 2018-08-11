@@ -19,9 +19,13 @@
 package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.CursorTrack;
+import com.bitwig.extension.controller.api.Track;
+import com.bitwig.extension.controller.api.TrackBank;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
+import com.hjaxel.framework.ColorMap;
+import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.navigation.CursorNavigator;
 
 import java.util.function.Consumer;
@@ -29,15 +33,29 @@ import java.util.function.Consumer;
 public class TrackCommandFactory {
 
     private final CursorNavigator trackNavigation;
-    private CursorTrack track;
+    private final CursorTrack track;
+    private final TrackBank trackBank;
+    private MidiFighterTwister twister;
+    private final ColorMap colorMap;
 
-    public TrackCommandFactory(CursorTrack track, UserSettings settings) {
+    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings, MidiFighterTwister twister) {
         this.track = track;
+        this.track.color().markInterested();
+        this.trackBank = trackBank;
+        this.twister = twister;
         trackNavigation = new CursorNavigator(track, settings);
+        colorMap = new ColorMap();
     }
 
     public PanCommand pan(double value){
         return new PanCommand(track, value);
+    }
+
+    public BitwigCommand volume(int trackNo, double value){
+        return () -> {
+            Track item = trackBank.getItemAt(trackNo);
+            item.getVolume().set(value, 128);
+        };
     }
 
     public VolumeCommand volume(double value){
@@ -57,10 +75,31 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand scroll(int direction) {
-        return () -> trackNavigation.onChange(64 + direction);
+        return () ->{
+                trackNavigation.onChange(64 + direction);
+                ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
+                twister.color(0, twisterColor.twisterValue);
+                twister.color(1, twisterColor.twisterValue);
+                twister.color(2, twisterColor.twisterValue);
+                twister.color(32, twisterColor.twisterValue);
+                twister.color(33, twisterColor.twisterValue);
+                twister.color(34, twisterColor.twisterValue);
+        };
     }
 
     public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
         return new SendCommand(track, sendNo, velocity, c);
+    }
+
+    public BitwigCommand next() {
+        return trackBank::scrollPageForwards;
+    }
+
+    public BitwigCommand previous() {
+        return trackBank::scrollPageBackwards;
+    }
+
+    public void color(ColorMap.TwisterColor direction) {
+        track.color().set(direction.red, direction.green, direction.blue);
     }
 }

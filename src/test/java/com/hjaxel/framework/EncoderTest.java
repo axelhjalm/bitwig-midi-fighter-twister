@@ -18,33 +18,28 @@
 
 package com.hjaxel.framework;
 
-import com.bitwig.extension.controller.api.MidiOut;
+import org.junit.Test;
 
-public class MidiFighterTwister {
+import java.util.*;
 
-    private final MidiOut midiOut;
+import static org.junit.Assert.*;
 
-    public MidiFighterTwister(MidiOut midiOut) {
-        this.midiOut = midiOut;
+public class EncoderTest {
+
+    @Test
+    public void ensureUniquenessOfChannelAndCCs(){
+        List<Encoder> encoders = Arrays.asList(Encoder.values());
+
+        Map<Integer, Set<Integer>> channelToCCMap = new HashMap<>();
+
+        encoders.forEach(e -> {
+            channelToCCMap.putIfAbsent(e.getChannel().value(), new HashSet<>());
+            int cc = e.getCc();
+            assertFalse("Duplicate " + e, channelToCCMap.get(e.getChannel().value()).contains(cc));
+            channelToCCMap.get(e.getChannel().value()).add(cc);
+
+        });
+
     }
 
-    public void selectBank1() {
-        midiOut.sendMidi(147, 0, 127);
-    }
-
-    public void selectBank2() {
-        midiOut.sendMidi(147, 1, 127);
-    }
-
-    public void selectBank3() {
-        midiOut.sendMidi(147, 2, 127);
-    }
-
-    public void selectBank4() {
-        midiOut.sendMidi(147, 3, 127);
-    }
-
-    public void color(int cc, int val) {
-        midiOut.sendMidi(177, cc, val);
-    }
 }

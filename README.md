@@ -56,8 +56,8 @@ The eight rightmost knobs controls Send 1 - Send 8, press to set value of that s
 5: Zoom in / out in selected window (arranger / clip)
 6: Track pan, press to reset to middle  
 10: Track volume, press to toggle mute
-13: Start of loop section, press to toggle loop
-14: End of loop section, press to toggle loop
+12: Start of loop section, press to toggle loop
+13: End of loop section, press to toggle loop
 
 
 

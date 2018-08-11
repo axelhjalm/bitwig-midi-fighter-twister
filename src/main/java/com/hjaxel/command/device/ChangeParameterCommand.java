@@ -18,16 +18,19 @@
 
 package com.hjaxel.command.device;
 
+import com.bitwig.extension.controller.api.CursorDevice;
 import com.bitwig.extension.controller.api.RemoteControl;
 import com.hjaxel.command.BitwigCommand;
 
 public class ChangeParameterCommand implements BitwigCommand {
     private final RemoteControl remoteControl;
+    private CursorDevice cursorDevice;
     private final double scale;
     private final int delta;
 
-    public ChangeParameterCommand(RemoteControl remoteControl, double scale, int delta) {
+    public ChangeParameterCommand(RemoteControl remoteControl, CursorDevice cursorDevice, double scale, int delta) {
         this.remoteControl = remoteControl;
+        this.cursorDevice = cursorDevice;
         this.scale = scale;
         this.delta = delta;
 
@@ -35,9 +38,10 @@ public class ChangeParameterCommand implements BitwigCommand {
 
     @Override
     public void execute() {
+        cursorDevice.isRemoteControlsSectionVisible().set(true);
         double v = scale * remoteControl.get();
         int direction = delta == -1 ? -2 : 1;
-        double value = Math.max(0, Math.min(scale, direction + v));
+        double value = Math.max(0, Math.min(scale-1, direction + v));
         remoteControl.set(value, scale);
     }
 

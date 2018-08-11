@@ -210,6 +210,8 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     }
 
     private void updateParameter(MidiMessage msg, double scale) {
+
+
         RemoteControl remoteControl = remoteControlsPage.getParameter(getParameterIndex(msg));
         double v = scale * remoteControl.get();
         int direction = msg.getVelocity() == 63 ? -2 : (msg.getVelocity() == 65 ? 1 : 0);
