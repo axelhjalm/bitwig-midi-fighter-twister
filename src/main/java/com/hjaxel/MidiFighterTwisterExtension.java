@@ -50,6 +50,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private CursorRemoteControlsPage remoteControlsPage;
     private PinnableCursorDevice device;
     private Mixer mixer;
+    private TrackBank trackBank;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -78,8 +79,11 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addListeners(transport);
 
 
+        trackBank = host.createTrackBank(16, 0, 0);
+        addVolumeObservers();
+
         device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, settings);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, trackBank, settings);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
         DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
@@ -112,7 +116,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         SettableRangedValue coarseControl = preferences.getNumberSetting("Coarse Control Scale", "Parameter", 1, 12, 1, "", 7);
         SettableRangedValue fineControl = preferences.getNumberSetting("Fine Control Scale", "Parameter", 1, 12, 1, "", 9);
         SettableRangedValue cursorSpeed = preferences.getNumberSetting("Cursor Scroll Speed", "Navigation", 5, 40, 1, "", 10);
-        return new UserSettings(fineControl, coarseControl, cursorSpeed);
+        return new UserSettings(cursorSpeed, fineControl, coarseControl);
     }
 
     private void addListeners(Transport transport) {
@@ -188,16 +192,35 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         return 8 + x;
     }
 
+    private void addVolumeObservers() {
+
+        trackBank.getItemAt(0).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 48, value));
+        trackBank.getItemAt(1).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 49, value));
+        trackBank.getItemAt(2).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 50, value));
+        trackBank.getItemAt(3).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 51, value));
+        trackBank.getItemAt(4).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 52, value));
+        trackBank.getItemAt(5).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 53, value));
+        trackBank.getItemAt(6).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 54, value));
+        trackBank.getItemAt(7).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 55, value));
+        trackBank.getItemAt(8).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 56, value));
+        trackBank.getItemAt(9).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 57, value));
+        trackBank.getItemAt(10).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 58, value));
+        trackBank.getItemAt(11).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 59, value));
+        trackBank.getItemAt(12).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 60, value));
+        trackBank.getItemAt(13).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 61, value));
+        trackBank.getItemAt(14).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 62, value));
+        trackBank.getItemAt(15).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 63, value));
+    }
 
     private void addSendObservers() {
         SendBank sendBank = cursorTrack.sendBank();
-        sendBank.getItemAt(0).value().addValueObserver(128, value -> midiOut.sendMidi(176, 34, value));
-        sendBank.getItemAt(1).value().addValueObserver(128, value -> midiOut.sendMidi(176, 38, value));
+        sendBank.getItemAt(0).value().addValueObserver(128, value -> midiOut.sendMidi(176, 40, value));
+        sendBank.getItemAt(1).value().addValueObserver(128, value -> midiOut.sendMidi(176, 41, value));
         sendBank.getItemAt(2).value().addValueObserver(128, value -> midiOut.sendMidi(176, 42, value));
-        sendBank.getItemAt(3).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46, value));
-        sendBank.getItemAt(4).value().addValueObserver(128, value -> midiOut.sendMidi(176, 35, value));
-        sendBank.getItemAt(5).value().addValueObserver(128, value -> midiOut.sendMidi(176, 39, value));
-        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 43, value));
+        sendBank.getItemAt(3).value().addValueObserver(128, value -> midiOut.sendMidi(176, 43, value));
+        sendBank.getItemAt(4).value().addValueObserver(128, value -> midiOut.sendMidi(176, 44, value));
+        sendBank.getItemAt(5).value().addValueObserver(128, value -> midiOut.sendMidi(176, 45, value));
+        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46       , value));
         sendBank.getItemAt(7).value().addValueObserver(128, value -> midiOut.sendMidi(176, 47, value));
     }
 

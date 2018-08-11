@@ -17,15 +17,14 @@
  */
 
 package com.hjaxel;
-import java.util.UUID;
 
 import com.bitwig.extension.api.PlatformType;
 import com.bitwig.extension.controller.AutoDetectionMidiPortNamesList;
 import com.bitwig.extension.controller.ControllerExtensionDefinition;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.Preferences;
-import com.bitwig.extension.controller.api.SettableRangedValue;
-import com.hjaxel.framework.IntSetting;
+
+import java.util.UUID;
 
 public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDefinition
 {

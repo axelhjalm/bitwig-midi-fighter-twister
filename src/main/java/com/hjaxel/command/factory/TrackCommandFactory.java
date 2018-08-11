@@ -19,6 +19,8 @@
 package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.CursorTrack;
+import com.bitwig.extension.controller.api.Track;
+import com.bitwig.extension.controller.api.TrackBank;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
@@ -29,15 +31,24 @@ import java.util.function.Consumer;
 public class TrackCommandFactory {
 
     private final CursorNavigator trackNavigation;
-    private CursorTrack track;
+    private final CursorTrack track;
+    private final TrackBank trackBank;
 
-    public TrackCommandFactory(CursorTrack track, UserSettings settings) {
+    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings) {
         this.track = track;
+        this.trackBank = trackBank;
         trackNavigation = new CursorNavigator(track, settings);
     }
 
     public PanCommand pan(double value){
         return new PanCommand(track, value);
+    }
+
+    public BitwigCommand volume(int trackNo, double value){
+        return () -> {
+            Track item = trackBank.getItemAt(trackNo);
+            item.getVolume().set(value, 128);
+        };
     }
 
     public VolumeCommand volume(double value){
@@ -62,5 +73,13 @@ public class TrackCommandFactory {
 
     public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
         return new SendCommand(track, sendNo, velocity, c);
+    }
+
+    public BitwigCommand next() {
+        return trackBank::scrollPageForwards;
+    }
+
+    public BitwigCommand previous() {
+        return trackBank::scrollPageBackwards;
     }
 }

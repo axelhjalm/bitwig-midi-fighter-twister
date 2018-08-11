@@ -26,9 +26,11 @@ public enum Encoder {
 
     Track(MidiChannel.CHANNEL_0, 0),
     Solo(MidiChannel.CHANNEL_1, 0),
+    SendSolo(MidiChannel.CHANNEL_1, 32),
 
     Volume(MidiChannel.CHANNEL_0, 1),
     Mute(MidiChannel.CHANNEL_1, 1),
+    SendMute(MidiChannel.CHANNEL_1, 33),
 
     Pan(MidiChannel.CHANNEL_0, 2),
     PanReset(MidiChannel.CHANNEL_1, 2),
@@ -38,7 +40,7 @@ public enum Encoder {
     PlayHead(MidiChannel.CHANNEL_0, 3),
     Play(MidiChannel.CHANNEL_1, 3),
     PlayPulse(MidiChannel.CHANNEL_2, 3),
-    SendPlayPulse(MidiChannel.CHANNEL_2, 33),
+    SendPlayPulse(MidiChannel.CHANNEL_2, 35),
     DisplayDevice(MidiChannel.CHANNEL_1, 5),
     ToggleDevice(MidiChannel.CHANNEL_1, 6),
     Preset(MidiChannel.CHANNEL_0, 7),
@@ -62,53 +64,80 @@ public enum Encoder {
     ParameterFine7(MidiChannel.CHANNEL_4, 14),
     ParameterFine8(MidiChannel.CHANNEL_4, 15),
 
-    SendTrackScroll(MidiChannel.CHANNEL_0, 32),
-    Send1(MidiChannel.CHANNEL_0, 34),
-    Send2(MidiChannel.CHANNEL_0, 38),
+    Send1(MidiChannel.CHANNEL_0, 40),
+    Send2(MidiChannel.CHANNEL_0, 41),
     Send3(MidiChannel.CHANNEL_0, 42),
-    Send4(MidiChannel.CHANNEL_0, 46),
-    Send5(MidiChannel.CHANNEL_0, 35),
-    Send6(MidiChannel.CHANNEL_0, 39),
-    Send7(MidiChannel.CHANNEL_0, 43),
+    Send4(MidiChannel.CHANNEL_0, 43),
+    Send5(MidiChannel.CHANNEL_0, 44),
+    Send6(MidiChannel.CHANNEL_0, 45),
+    Send7(MidiChannel.CHANNEL_0, 46),
     Send8(MidiChannel.CHANNEL_0, 47),
-    SendToggle1(MidiChannel.CHANNEL_1, 34),
-    SendToggle2(MidiChannel.CHANNEL_1, 38),
+    SendToggle1(MidiChannel.CHANNEL_1, 40),
+    SendToggle2(MidiChannel.CHANNEL_1, 41),
     SendToggle3(MidiChannel.CHANNEL_1, 42),
-    SendToggle4(MidiChannel.CHANNEL_1, 46),
-    SendToggle5(MidiChannel.CHANNEL_1, 35),
-    SendToggle6(MidiChannel.CHANNEL_1, 39),
-    SendToggle7(MidiChannel.CHANNEL_1, 43),
+    SendToggle4(MidiChannel.CHANNEL_1, 43),
+    SendToggle5(MidiChannel.CHANNEL_1, 44),
+    SendToggle6(MidiChannel.CHANNEL_1, 45),
+    SendToggle7(MidiChannel.CHANNEL_1, 46),
     SendToggle8(MidiChannel.CHANNEL_1, 47),
 
-    SendScroll(MidiChannel.CHANNEL_0, 33),
-    SendPlay(MidiChannel.CHANNEL_1, 33),
-    SendPan(MidiChannel.CHANNEL_0, 37),
-    SendPanReset(MidiChannel.CHANNEL_1, 37),
-    SendVolume(MidiChannel.CHANNEL_0, 41),
+    SendTrackScroll(MidiChannel.CHANNEL_0, 32),
+    SendVolume(MidiChannel.CHANNEL_0, 33),
+    SendPan(MidiChannel.CHANNEL_0, 34),
+    SendPanReset(MidiChannel.CHANNEL_1, 34),
+    SendScroll(MidiChannel.CHANNEL_0, 35),
+    SendPlay(MidiChannel.CHANNEL_1, 35),
 
-    LoopStart(MidiChannel.CHANNEL_0, 44),
-    LoopStop(MidiChannel.CHANNEL_0, 45),
-    LoopToggle1(MidiChannel.CHANNEL_1, 44),
-    LoopToggle2(MidiChannel.CHANNEL_1, 45),
+    LoopStart(MidiChannel.CHANNEL_0, 36),
+    LoopStop(MidiChannel.CHANNEL_0, 37),
+    LoopToggle1(MidiChannel.CHANNEL_1, 36),
+    LoopToggle2(MidiChannel.CHANNEL_1, 37),
 
-    Zoom(MidiChannel.CHANNEL_0, 36),
-    ArrangerZoomFull(MidiChannel.CHANNEL_1, 36),
+    Zoom(MidiChannel.CHANNEL_0, 38),
+    ArrangerZoomFull(MidiChannel.CHANNEL_1, 38),
 
     Device(MidiChannel.CHANNEL_3, 0),
     Drums(MidiChannel.CHANNEL_3, 1),
     Mixer(MidiChannel.CHANNEL_3, 2),
 
     GotoMixer(MidiChannel.CHANNEL_3, 10),
-    GotoDrums(MidiChannel.CHANNEL_3, 10),
+    GotoDevice2(MidiChannel.CHANNEL_3, 26),
+    GotoMixer2(MidiChannel.CHANNEL_3, 28),
+    GotoVolume(MidiChannel.CHANNEL_3, 11),
+    GotoVolume2(MidiChannel.CHANNEL_3, 23),
     GotoDevice(MidiChannel.CHANNEL_3, 20),
 
+    Volume1(MidiChannel.CHANNEL_0, 48),
+    Volume2(MidiChannel.CHANNEL_0, 49),
+    Volume3(MidiChannel.CHANNEL_0, 50),
+    Volume4(MidiChannel.CHANNEL_0, 51),
+    Volume5(MidiChannel.CHANNEL_0, 52),
+    Volume6(MidiChannel.CHANNEL_0, 53),
+    Volume7(MidiChannel.CHANNEL_0, 54),
+    Volume8(MidiChannel.CHANNEL_0, 55),
+    Volume9(MidiChannel.CHANNEL_0, 56),
+    Volume10(MidiChannel.CHANNEL_0, 57),
+    Volume11(MidiChannel.CHANNEL_0, 58),
+    Volume12(MidiChannel.CHANNEL_0, 59),
+    Volume13(MidiChannel.CHANNEL_0, 60),
+    Volume14(MidiChannel.CHANNEL_0, 61),
+    Volume15(MidiChannel.CHANNEL_0, 62),
+    Volume16(MidiChannel.CHANNEL_0, 63),
+
+    VolumeTrackBankPrevious(MidiChannel.CHANNEL_3, 29),
+    VolumeTrackBankNext(MidiChannel.CHANNEL_3, 31),
     ;
-
-
-
 
     private final MidiChannel channel;
     private final int cc;
+
+    public MidiChannel getChannel() {
+        return channel;
+    }
+
+    public int getCc() {
+        return cc;
+    }
 
     public static Optional<Encoder> from(MidiMessage msg) {
         for (Encoder encoder : Encoder.values()) {

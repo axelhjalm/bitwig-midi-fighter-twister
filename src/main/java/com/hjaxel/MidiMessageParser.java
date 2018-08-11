@@ -62,8 +62,10 @@ public class MidiMessageParser {
             case Track:
                 return track.scroll(midiMessage.direction());
             case Mute:
+            case SendMute:
                 return track.mute();
             case Solo:
+            case SendSolo:
                 return track.solo();
             case Pan:
             case SendPan:
@@ -189,16 +191,62 @@ public class MidiMessageParser {
                 return () -> application.toggleMixer();
 
             case GotoMixer:
+            case GotoMixer2:
                 return () ->
                 {
                     twister.selectBank3();
                     application.toggleMixer();
                 };
             case GotoDevice:
+            case GotoDevice2:
                 return () -> {
                     twister.selectBank1();
                     application.toggleDevices();
                 };
+            case GotoVolume:
+            case GotoVolume2:
+                return () -> {
+                    twister.selectBank4();
+                    application.toggleMixer();
+                };
+
+            case Volume1:
+                return track.volume(0, midiMessage.getVelocity());
+            case Volume2:
+                return track.volume(1, midiMessage.getVelocity());
+            case Volume3:
+                return track.volume(2, midiMessage.getVelocity());
+            case Volume4:
+                return track.volume(3, midiMessage.getVelocity());
+            case Volume5:
+                return track.volume(4, midiMessage.getVelocity());
+            case Volume6:
+                return track.volume(5, midiMessage.getVelocity());
+            case Volume7:
+                return track.volume(6, midiMessage.getVelocity());
+            case Volume8:
+                return track.volume(7, midiMessage.getVelocity());
+            case Volume9:
+                return track.volume(8, midiMessage.getVelocity());
+            case Volume10:
+                return track.volume(9, midiMessage.getVelocity());
+            case Volume11:
+                return track.volume(10, midiMessage.getVelocity());
+            case Volume12:
+                return track.volume(11, midiMessage.getVelocity());
+            case Volume13:
+                return track.volume(12, midiMessage.getVelocity());
+            case Volume14:
+                return track.volume(13, midiMessage.getVelocity());
+            case Volume15:
+                return track.volume(14, midiMessage.getVelocity());
+            case Volume16:
+                return track.volume(15, midiMessage.getVelocity());
+
+            case VolumeTrackBankNext:
+                return track.next();
+            case VolumeTrackBankPrevious:
+                return track.previous();
 
         }
 

@@ -45,4 +45,9 @@ public class SendCommand implements BitwigCommand {
         Send item = sendBank.getItemAt(index);
         item.set(value, 128);
     }
+
+    @Override
+    public String toString() {
+        return "SendCommand " + index;
+    }
 }

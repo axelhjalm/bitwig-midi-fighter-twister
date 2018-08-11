@@ -41,32 +41,40 @@ public class DeviceCommandFactory {
         this.parameters = new CursorNavigator(remoteControlsPage, settings);
     }
 
-    public ChangeParameterCommand parameter(int index, double scale, int delta){
+    public ChangeParameterCommand parameter(int index, double scale, int delta) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(index);
-        return new ChangeParameterCommand(remoteControl, scale, delta);
+        return new ChangeParameterCommand(remoteControl, cursorDevice, scale, delta);
     }
 
-    public ScrollPresetsCommand scrollPresetsCommand(int direction){
+    public ScrollPresetsCommand scrollPresetsCommand(int direction) {
         return new ScrollPresetsCommand(cursorDevice, browser, direction);
     }
 
-    public SelectPresetsCommand selectPresetsCommand(){
+    public SelectPresetsCommand selectPresetsCommand() {
         return new SelectPresetsCommand(browser);
     }
 
-    public ToggleDeviceCommand toggleDeviceCommand(){
+    public ToggleDeviceCommand toggleDeviceCommand() {
         return new ToggleDeviceCommand(cursorDevice);
     }
 
-    public ToggleDisplayDeviceCommand toggleDisplayDeviceCommand(){
+    public ToggleDisplayDeviceCommand toggleDisplayDeviceCommand() {
         return new ToggleDisplayDeviceCommand(cursorDevice);
     }
 
     public BitwigCommand scrollDevice(int direction) {
-        return () -> devices.onChange(64 + direction);
+        return () -> {
+            devices.onChange(64 + direction);
+            cursorDevice.selectInEditor();
+        };
     }
 
     public BitwigCommand scrollParameterPage(int direction) {
-        return () -> parameters.onChange(64 + direction);
+        return () ->
+        {
+            cursorDevice.isRemoteControlsSectionVisible().set(true);
+            cursorDevice.selectInEditor();
+            parameters.onChange(64 + direction);
+        };
     }
 }

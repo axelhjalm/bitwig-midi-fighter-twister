@@ -6,7 +6,7 @@
 	<artifactId>midi-fighter-twister</artifactId>
 	<packaging>jar</packaging>
 	<name>Midi Fighter Twister</name>
-	<version>0.5</version>
+	<version>0.6</version>
 
 	<repositories>
 		<repository>
@@ -18,6 +18,7 @@
 
 	<properties>
 		<bitwig.extension.directory>.</bitwig.extension.directory>
+		<!--<bitwig.extension.directory>C:\Users\axel\Documents\Bitwig Studio\Extensions</bitwig.extension.directory>-->
 	</properties>
 
 
