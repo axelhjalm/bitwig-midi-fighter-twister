@@ -82,8 +82,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         trackBank = host.createTrackBank(16, 0, 0);
         addVolumeObservers();
 
+        MidiFighterTwister twister = new MidiFighterTwister(midiOut);
         device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, trackBank, settings);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, trackBank, settings, twister);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
         DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
@@ -91,7 +92,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addParameterPageControls();
         addSendObservers();
 
-        MidiFighterTwister twister = new MidiFighterTwister(midiOut);
         midiMessageParser = new MidiMessageParser(trackFactory, transportFactory,
                 deviceFactory, settings, host.createApplication(), twister);
 

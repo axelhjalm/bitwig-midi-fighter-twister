@@ -107,6 +107,8 @@ public enum Encoder {
     GotoVolume2(MidiChannel.CHANNEL_3, 23),
     GotoDevice(MidiChannel.CHANNEL_3, 20),
 
+    Color(MidiChannel.CHANNEL_0, 39),
+
     Volume1(MidiChannel.CHANNEL_0, 48),
     Volume2(MidiChannel.CHANNEL_0, 49),
     Volume3(MidiChannel.CHANNEL_0, 50),

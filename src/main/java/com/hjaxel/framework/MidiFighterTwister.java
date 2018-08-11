@@ -43,4 +43,8 @@ public class MidiFighterTwister {
     public void selectBank4() {
         midiOut.sendMidi(147, 3, 127);
     }
+
+    public void color(int cc, int val) {
+        midiOut.sendMidi(177, cc, val);
+    }
 }

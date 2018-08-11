@@ -24,6 +24,8 @@ import com.bitwig.extension.controller.api.TrackBank;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
+import com.hjaxel.framework.ColorMap;
+import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.navigation.CursorNavigator;
 
 import java.util.function.Consumer;
@@ -33,11 +35,16 @@ public class TrackCommandFactory {
     private final CursorNavigator trackNavigation;
     private final CursorTrack track;
     private final TrackBank trackBank;
+    private MidiFighterTwister twister;
+    private final ColorMap colorMap;
 
-    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings) {
+    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings, MidiFighterTwister twister) {
         this.track = track;
+        this.track.color().markInterested();
         this.trackBank = trackBank;
+        this.twister = twister;
         trackNavigation = new CursorNavigator(track, settings);
+        colorMap = new ColorMap();
     }
 
     public PanCommand pan(double value){
@@ -68,7 +75,17 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand scroll(int direction) {
-        return () -> trackNavigation.onChange(64 + direction);
+        return () -> {
+            float red = track.color().red();
+            float green = track.color().green();
+            float blue = track.color().blue();
+
+            ColorMap.TwisterColor twisterColor = colorMap.get(red, green, blue);
+
+            twister.color(39, twisterColor.twisterValue);
+
+            trackNavigation.onChange(64 + direction);
+        };
     }
 
     public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
@@ -81,5 +98,9 @@ public class TrackCommandFactory {
 
     public BitwigCommand previous() {
         return trackBank::scrollPageBackwards;
+    }
+
+    public void color(ColorMap.TwisterColor direction) {
+        track.color().set(direction.red, direction.green, direction.blue);
     }
 }
