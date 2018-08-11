@@ -59,7 +59,7 @@ public class MidiMessageParser {
                 .map(encoder -> toCommand(encoder, midiMessage, c)).orElse(new NoAction(midiMessage));
     }
 
-    private BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage, Consumer<String> c) {
+    public BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage, Consumer<String> c) {
         switch (encoder) {
             // track
             case Track:
@@ -88,15 +88,41 @@ public class MidiMessageParser {
             case PlayHead:
                 return transport.playHeadCommand(midiMessage.direction());
 
-
             case Color:
                 return () -> {
-                    twister.color(39, midiMessage.getVelocity());
                     ColorMap.TwisterColor twisterColor = colorMap.get(midiMessage.getVelocity());
-
                     track.color(twisterColor);
-
                 };
+
+            // Function toggles
+            case Device:
+                return () -> application.toggleDevices();
+            case Drums:
+                return () -> {
+                };
+            case Mixer:
+                return () -> application.toggleMixer();
+
+            case GotoMixer:
+            case GotoMixer2:
+                return () ->
+                {
+                    twister.selectBank3();
+                    application.toggleMixer();
+                };
+            case GotoDevice:
+            case GotoDevice2:
+                return () -> {
+                    twister.selectBank1();
+                    application.toggleDevices();
+                };
+            case GotoVolume:
+            case GotoVolume2:
+                return () -> {
+                    twister.selectBank4();
+                    application.toggleMixer();
+                };
+
 
             // device
             case DeviceNavigation:
@@ -127,7 +153,6 @@ public class MidiMessageParser {
                 return device.parameter(6, settings.coarse(), midiMessage.direction());
             case Parameter8:
                 return device.parameter(7, settings.coarse(), midiMessage.direction());
-
             case ParameterFine1:
                 return device.parameter(0, settings.fine(), midiMessage.direction());
             case ParameterFine2:
@@ -145,7 +170,7 @@ public class MidiMessageParser {
             case ParameterFine8:
                 return device.parameter(7, settings.fine(), midiMessage.direction());
 
-
+            // Page 3 - Mixer and Sends
             case SendTrackScroll:
                 return track.scroll(midiMessage.direction());
             case Send1:
@@ -181,6 +206,12 @@ public class MidiMessageParser {
                 return track.send(6, 0, c);
             case SendToggle8:
                 return track.send(7, 0, c);
+
+            case SendBankNext:
+                return track.nextSendPage();
+            case SendBankPrevious:
+                return track.previousSendPage();
+
             case ArrangerZoomFull:
                 return new ZoomToFitCommand(application);
             case Zoom:
@@ -195,34 +226,8 @@ public class MidiMessageParser {
             case LoopToggle2:
                 return transport.loopToggle();
 
-            // Function toggles
-            case Device:
-                return () -> application.toggleDevices();
-            case Drums:
-                return () -> {};
-            case Mixer:
-                return () -> application.toggleMixer();
 
-            case GotoMixer:
-            case GotoMixer2:
-                return () ->
-                {
-                    twister.selectBank3();
-                    application.toggleMixer();
-                };
-            case GotoDevice:
-            case GotoDevice2:
-                return () -> {
-                    twister.selectBank1();
-                    application.toggleDevices();
-                };
-            case GotoVolume:
-            case GotoVolume2:
-                return () -> {
-                    twister.selectBank4();
-                    application.toggleMixer();
-                };
-
+            // Page 4 - Volume
             case Volume1:
                 return track.volume(0, midiMessage.getVelocity());
             case Volume2:
@@ -257,9 +262,10 @@ public class MidiMessageParser {
                 return track.volume(15, midiMessage.getVelocity());
 
             case VolumeTrackBankNext:
-                return track.next();
+                return track.nextTrackPage();
             case VolumeTrackBankPrevious:
-                return track.previous();
+                return track.previousTrackPage();
+
 
         }
 

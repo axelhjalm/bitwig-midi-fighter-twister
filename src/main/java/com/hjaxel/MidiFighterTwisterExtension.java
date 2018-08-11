@@ -108,12 +108,13 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         SettableColorValue settableColorValue = cursorTrack.color();
         settableColorValue.markInterested();
         settableColorValue.addValueObserver((r, g, b) -> {
-            twister.color(0, colorMap.get(r, g, b).twisterValue);
-            twister.color(1, colorMap.get(r, g, b).twisterValue);
-            twister.color(2, colorMap.get(r, g, b).twisterValue);
-            twister.color(32, colorMap.get(r, g, b).twisterValue);
-            twister.color(33, colorMap.get(r, g, b).twisterValue);
-            twister.color(34, colorMap.get(r, g, b).twisterValue);
+            ColorMap.TwisterColor color = colorMap.get(r, g, b);
+            twister.color(Encoder.Track, color);
+            twister.color(Encoder.Volume, color);
+            twister.color(Encoder.Pan, color);
+            twister.color(Encoder.SendTrackScroll, color);
+            twister.color(Encoder.SendVolume, color);
+            twister.color(Encoder.SendPan, color);
         });
 
 

@@ -18,7 +18,6 @@
 
 package com.hjaxel.command.track;
 
-import com.bitwig.extension.controller.api.CursorTrack;
 import com.bitwig.extension.controller.api.Send;
 import com.bitwig.extension.controller.api.SendBank;
 import com.hjaxel.command.BitwigCommand;
@@ -27,13 +26,13 @@ import java.util.function.Consumer;
 
 public class SendCommand implements BitwigCommand {
 
-    private final CursorTrack cursorTrack;
     private final int index;
     private final int value;
     private Consumer<String> c;
+    private SendBank bank;
 
-    public SendCommand(CursorTrack cursorTrack, int index, int value, Consumer<String> c) {
-        this.cursorTrack = cursorTrack;
+    public SendCommand(SendBank bank, int index, int value, Consumer<String> c) {
+        this.bank = bank;
         this.index = index;
         this.value = value;
         this.c = c;
@@ -41,8 +40,7 @@ public class SendCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        SendBank sendBank = cursorTrack.sendBank();
-        Send item = sendBank.getItemAt(index);
+        Send item = bank.getItemAt(index);
         item.set(value, 128);
     }
 

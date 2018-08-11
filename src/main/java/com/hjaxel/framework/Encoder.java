@@ -128,6 +128,8 @@ public enum Encoder {
 
     VolumeTrackBankPrevious(MidiChannel.CHANNEL_3, 29),
     VolumeTrackBankNext(MidiChannel.CHANNEL_3, 31),
+    SendBankPrevious(MidiChannel.CHANNEL_3, 12),
+    SendBankNext(MidiChannel.CHANNEL_3, 14),
     ;
 
     private final MidiChannel channel;

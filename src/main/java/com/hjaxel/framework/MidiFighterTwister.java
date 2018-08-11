@@ -44,7 +44,11 @@ public class MidiFighterTwister {
         midiOut.sendMidi(147, 3, 127);
     }
 
-    public void color(int cc, int val) {
+    public void color(int cc, int val){
         midiOut.sendMidi(177, cc, val);
+    }
+
+    public void color(Encoder encoder, ColorMap.TwisterColor color) {
+        midiOut.sendMidi(177, encoder.getCc(), color.twisterValue);
     }
 }

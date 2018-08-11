@@ -19,12 +19,14 @@
 package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.CursorTrack;
+import com.bitwig.extension.controller.api.SendBank;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
 import com.hjaxel.framework.ColorMap;
+import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.navigation.CursorNavigator;
 
@@ -35,8 +37,9 @@ public class TrackCommandFactory {
     private final CursorNavigator trackNavigation;
     private final CursorTrack track;
     private final TrackBank trackBank;
-    private MidiFighterTwister twister;
+    private final MidiFighterTwister twister;
     private final ColorMap colorMap;
+    private SendBank sendBank;
 
     public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings, MidiFighterTwister twister) {
         this.track = track;
@@ -45,24 +48,25 @@ public class TrackCommandFactory {
         this.twister = twister;
         trackNavigation = new CursorNavigator(track, settings);
         colorMap = new ColorMap();
+        sendBank = track.sendBank();
     }
 
-    public PanCommand pan(double value){
+    public PanCommand pan(double value) {
         return new PanCommand(track, value);
     }
 
-    public BitwigCommand volume(int trackNo, double value){
+    public BitwigCommand volume(int trackNo, double value) {
         return () -> {
             Track item = trackBank.getItemAt(trackNo);
             item.getVolume().set(value, 128);
         };
     }
 
-    public VolumeCommand volume(double value){
+    public VolumeCommand volume(double value) {
         return new VolumeCommand(track, value);
     }
 
-    public MuteCommand mute(){
+    public MuteCommand mute() {
         return new MuteCommand(track);
     }
 
@@ -75,27 +79,36 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand scroll(int direction) {
-        return () ->{
-                trackNavigation.onChange(64 + direction);
-                ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
-                twister.color(0, twisterColor.twisterValue);
-                twister.color(1, twisterColor.twisterValue);
-                twister.color(2, twisterColor.twisterValue);
-                twister.color(32, twisterColor.twisterValue);
-                twister.color(33, twisterColor.twisterValue);
-                twister.color(34, twisterColor.twisterValue);
+        return () -> {
+            trackNavigation.onChange(64 + direction);
+            ColorMap.TwisterColor color = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
+            twister.color(Encoder.Track, color);
+            twister.color(Encoder.Volume, color);
+            twister.color(Encoder.Pan, color);
+            twister.color(Encoder.SendTrackScroll, color);
+            twister.color(Encoder.SendVolume, color);
+            twister.color(Encoder.SendPan, color);
         };
     }
 
     public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
-        return new SendCommand(track, sendNo, velocity, c);
+
+        return new SendCommand(sendBank, sendNo, velocity, c);
     }
 
-    public BitwigCommand next() {
+    public BitwigCommand nextSendPage(){
+        return sendBank::scrollPageForwards;
+    }
+
+    public BitwigCommand previousSendPage(){
+        return sendBank::scrollPageBackwards;
+    }
+
+    public BitwigCommand nextTrackPage() {
         return trackBank::scrollPageForwards;
     }
 
-    public BitwigCommand previous() {
+    public BitwigCommand previousTrackPage() {
         return trackBank::scrollPageBackwards;
     }
 
