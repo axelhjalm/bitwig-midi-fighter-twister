@@ -27,21 +27,19 @@ import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.factory.DeviceCommandFactory;
 import com.hjaxel.command.factory.TrackCommandFactory;
 import com.hjaxel.command.factory.TransportCommandFactory;
-import com.hjaxel.framework.Encoder;
-import com.hjaxel.framework.MidiChannel;
-import com.hjaxel.framework.MidiFighterTwister;
-import com.hjaxel.framework.MidiMessage;
+import com.hjaxel.framework.*;
 import com.hjaxel.page.MidiFighterTwisterControl;
 import com.hjaxel.page.drum.DrumPad16;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private ControllerHost host;
     private Transport mTransport;
-//    private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
+    //    private final Map<Integer, CursorNavigator> navigators = new HashMap<>();
     private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
     private SettableEnumValue debugLogging;
     private MidiMessageParser midiMessageParser;
@@ -51,6 +49,8 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private PinnableCursorDevice device;
     private Mixer mixer;
     private TrackBank trackBank;
+    private MidiFighterTwister twister;
+    private ColorMap colorMap;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -62,6 +62,8 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         host = getHost();
         setupMidiChannels();
 
+        colorMap = new ColorMap();
+
         mixer = host.createMixer();
 
         UserSettings settings = createSettings(host.getPreferences());
@@ -69,7 +71,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         mTransport = host.createTransport();
 
-        //listeners.add(new DeviceTrack(host, coarseControl, fineControl, cursorSpeed));
         listeners.add(new DrumPad16(host));
         listeners.add(new SideButtonConsumer(host, 0));
 
@@ -82,7 +83,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         trackBank = host.createTrackBank(16, 0, 0);
         addVolumeObservers();
 
-        MidiFighterTwister twister = new MidiFighterTwister(midiOut);
+        twister = new MidiFighterTwister(midiOut);
         device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
         TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, trackBank, settings, twister);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
@@ -99,11 +100,23 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
 
-
     private void createCursorTrack() {
         cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
         cursorTrack.addIsSelectedInMixerObserver(onTrackFocus());
         cursorTrack.addIsSelectedInEditorObserver(onTrackFocus());
+
+        SettableColorValue settableColorValue = cursorTrack.color();
+        settableColorValue.markInterested();
+        settableColorValue.addValueObserver((r, g, b) -> {
+            twister.color(0, colorMap.get(r, g, b).twisterValue);
+            twister.color(1, colorMap.get(r, g, b).twisterValue);
+            twister.color(2, colorMap.get(r, g, b).twisterValue);
+            twister.color(32, colorMap.get(r, g, b).twisterValue);
+            twister.color(33, colorMap.get(r, g, b).twisterValue);
+            twister.color(34, colorMap.get(r, g, b).twisterValue);
+        });
+
+
     }
 
     private void setupMidiChannels() {
@@ -138,6 +151,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             }
         });
     }
+
     private void addListener(Encoder encoder, Parameter parameter) {
         parameter.value().addValueObserver(128, val -> encoder.send(midiOut, val));
     }
@@ -174,7 +188,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
      */
     private void onMidi0(ShortMidiMessage msg) {
         MidiMessage midiMessage = new MidiMessage(MidiChannel.from(msg.getChannel()), msg.getData1(), msg.getData2());
-        BitwigCommand command = midiMessageParser.parse(midiMessage ,s -> print(s));
+        BitwigCommand command = midiMessageParser.parse(midiMessage, s -> print(s));
         print(midiMessage + " == " + command.toString());
         command.execute();
         listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
@@ -192,24 +206,26 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         return 8 + x;
     }
 
-    private void addVolumeObservers() {
+    private void observeVolume(int index) {
+        SettableColorValue settableColorValue = trackBank.getItemAt(index).color();
+        settableColorValue.markInterested();
 
-        trackBank.getItemAt(0).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 48, value));
-        trackBank.getItemAt(1).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 49, value));
-        trackBank.getItemAt(2).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 50, value));
-        trackBank.getItemAt(3).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 51, value));
-        trackBank.getItemAt(4).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 52, value));
-        trackBank.getItemAt(5).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 53, value));
-        trackBank.getItemAt(6).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 54, value));
-        trackBank.getItemAt(7).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 55, value));
-        trackBank.getItemAt(8).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 56, value));
-        trackBank.getItemAt(9).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 57, value));
-        trackBank.getItemAt(10).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 58, value));
-        trackBank.getItemAt(11).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 59, value));
-        trackBank.getItemAt(12).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 60, value));
-        trackBank.getItemAt(13).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 61, value));
-        trackBank.getItemAt(14).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 62, value));
-        trackBank.getItemAt(15).getVolume().value().addValueObserver(128, value -> midiOut.sendMidi(176, 63, value));
+        settableColorValue.addValueObserver((r, g, b) -> {
+            twister.color(48 + index, colorMap.get(r, g, b).twisterValue);
+        });
+
+
+        trackBank.getItemAt(index).getVolume().value().addValueObserver(128, value -> {
+            SettableColorValue color = settableColorValue;
+            midiOut.sendMidi(176, 48 + index, value);
+            twister.color(48 + index, colorMap.get(color.red(), color.green(), color.blue()).twisterValue);
+        });
+    }
+
+    private void addVolumeObservers() {
+        for (int i = 0; i < 16; i++) {
+            observeVolume(i);
+        }
     }
 
     private void addSendObservers() {
@@ -220,7 +236,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         sendBank.getItemAt(3).value().addValueObserver(128, value -> midiOut.sendMidi(176, 43, value));
         sendBank.getItemAt(4).value().addValueObserver(128, value -> midiOut.sendMidi(176, 44, value));
         sendBank.getItemAt(5).value().addValueObserver(128, value -> midiOut.sendMidi(176, 45, value));
-        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46       , value));
+        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46, value));
         sendBank.getItemAt(7).value().addValueObserver(128, value -> midiOut.sendMidi(176, 47, value));
     }
 
@@ -264,7 +280,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         else if (data.equals("f07f7f0606f7"))
             mTransport.record();
     }
-
 
 
     private class SideButtonConsumer extends MidiFighterTwisterControl {

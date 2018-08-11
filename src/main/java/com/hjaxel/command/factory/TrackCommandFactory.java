@@ -75,16 +75,15 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand scroll(int direction) {
-        return () -> {
-            float red = track.color().red();
-            float green = track.color().green();
-            float blue = track.color().blue();
-
-            ColorMap.TwisterColor twisterColor = colorMap.get(red, green, blue);
-
-            twister.color(39, twisterColor.twisterValue);
-
-            trackNavigation.onChange(64 + direction);
+        return () ->{
+                trackNavigation.onChange(64 + direction);
+                ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
+                twister.color(0, twisterColor.twisterValue);
+                twister.color(1, twisterColor.twisterValue);
+                twister.color(2, twisterColor.twisterValue);
+                twister.color(32, twisterColor.twisterValue);
+                twister.color(33, twisterColor.twisterValue);
+                twister.color(34, twisterColor.twisterValue);
         };
     }
 
