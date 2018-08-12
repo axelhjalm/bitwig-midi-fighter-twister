@@ -54,7 +54,7 @@ The eight rightmost knobs controls Send 1 - Send 8, press to set value of that s
 1-4. Same as device page (scroll track, volume, pan, play head and play/stop)
 5: Start of loop section, press to toggle loop
 6: End of loop section, press to toggle loop
-7: Zoom in / out in selected window (arranger / clip), press to zoom to fit
+7: Zoom in / out in selected window (arranger / clip), press to zoom to fit. Need to select arranger window or clip.
 8: Select color of track/send
 9-16: Send amount. Will use the color of the FX track. Press to reset to zero
 
