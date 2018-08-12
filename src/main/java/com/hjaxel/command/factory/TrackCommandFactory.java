@@ -51,9 +51,18 @@ public class TrackCommandFactory {
         return new PanCommand(track, value);
     }
 
-    public BitwigCommand volume(int trackNo, double value){
+    public BitwigCommand volume(int trackNo, int delta, double scale){
         return () -> {
             Track item = trackBank.getItemAt(trackNo);
+            item.getVolume().inc(delta, scale);
+        };
+    }
+
+    public BitwigCommand volume(int trackNo, double value){
+        return () -> {
+
+            Track item = trackBank.getItemAt(trackNo);
+
             item.getVolume().set(value, 128);
         };
     }

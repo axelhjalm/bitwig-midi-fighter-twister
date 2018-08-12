@@ -39,10 +39,7 @@ public class ChangeParameterCommand implements BitwigCommand {
     @Override
     public void execute() {
         cursorDevice.isRemoteControlsSectionVisible().set(true);
-        double v = scale * remoteControl.get();
-        int direction = delta == -1 ? -2 : 1;
-        double value = Math.max(0, Math.min(scale-1, direction + v));
-        remoteControl.set(value, scale);
+        remoteControl.inc(delta, scale);
     }
 
     @Override

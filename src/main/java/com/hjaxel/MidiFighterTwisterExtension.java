@@ -47,7 +47,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private MidiOut midiOut;
     private CursorRemoteControlsPage remoteControlsPage;
     private PinnableCursorDevice device;
-    private Mixer mixer;
     private TrackBank trackBank;
     private MidiFighterTwister twister;
     private ColorMap colorMap;
@@ -63,9 +62,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         setupMidiChannels();
 
         colorMap = new ColorMap();
-
-        mixer = host.createMixer();
-
         UserSettings settings = createSettings(host.getPreferences());
         debugLogging = host.getPreferences().getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
@@ -81,11 +77,13 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
 
         trackBank = host.createTrackBank(16, 0, 0);
+        this.trackBank.followCursorTrack(cursorTrack);
+
         addVolumeObservers();
 
         twister = new MidiFighterTwister(midiOut);
         device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, trackBank, settings, twister);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, this.trackBank, settings, twister);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
         DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
@@ -214,11 +212,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             twister.color(48 + index, colorMap.get(r, g, b).twisterValue);
         });
 
-
         trackBank.getItemAt(index).getVolume().value().addValueObserver(128, value -> {
             SettableColorValue color = settableColorValue;
             midiOut.sendMidi(176, 48 + index, value);
-            twister.color(48 + index, colorMap.get(color.red(), color.green(), color.blue()).twisterValue);
+            midiOut.sendMidi(180, 48 + index, value);
         });
     }
 

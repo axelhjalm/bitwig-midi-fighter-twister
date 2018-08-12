@@ -224,37 +224,70 @@ public class MidiMessageParser {
                 };
 
             case Volume1:
-                return track.volume(0, midiMessage.getVelocity());
+                return track.volume(0, midiMessage.direction(), settings.coarse());
             case Volume2:
-                return track.volume(1, midiMessage.getVelocity());
+                return track.volume(1, midiMessage.direction(), settings.coarse());
             case Volume3:
-                return track.volume(2, midiMessage.getVelocity());
+                return track.volume(2, midiMessage.direction(), settings.coarse());
             case Volume4:
-                return track.volume(3, midiMessage.getVelocity());
+                return track.volume(3, midiMessage.direction(), settings.coarse());
             case Volume5:
-                return track.volume(4, midiMessage.getVelocity());
+                return track.volume(4, midiMessage.direction(), settings.coarse());
             case Volume6:
-                return track.volume(5, midiMessage.getVelocity());
+                return track.volume(5, midiMessage.direction(), settings.coarse());
             case Volume7:
-                return track.volume(6, midiMessage.getVelocity());
+                return track.volume(6, midiMessage.direction(), settings.coarse());
             case Volume8:
-                return track.volume(7, midiMessage.getVelocity());
+                return track.volume(7, midiMessage.direction(), settings.coarse());
             case Volume9:
-                return track.volume(8, midiMessage.getVelocity());
+                return track.volume(8, midiMessage.direction(), settings.coarse());
             case Volume10:
-                return track.volume(9, midiMessage.getVelocity());
+                return track.volume(9, midiMessage.direction(), settings.coarse());
             case Volume11:
-                return track.volume(10, midiMessage.getVelocity());
+                return track.volume(10, midiMessage.direction(), settings.coarse());
             case Volume12:
-                return track.volume(11, midiMessage.getVelocity());
+                return track.volume(11, midiMessage.direction(), settings.coarse());
             case Volume13:
-                return track.volume(12, midiMessage.getVelocity());
+                return track.volume(12, midiMessage.direction(), settings.coarse());
             case Volume14:
-                return track.volume(13, midiMessage.getVelocity());
+                return track.volume(13, midiMessage.direction(), settings.coarse());
             case Volume15:
-                return track.volume(14, midiMessage.getVelocity());
+                return track.volume(14, midiMessage.direction(), settings.coarse());
             case Volume16:
-                return track.volume(15, midiMessage.getVelocity());
+                return track.volume(15, midiMessage.direction(), settings.coarse());
+
+            case Volume1Fine:
+                return track.volume(0, midiMessage.direction(), settings.fine());
+            case Volume2Fine:
+                return track.volume(1, midiMessage.direction(), settings.fine());
+            case Volume3Fine:
+                return track.volume(2, midiMessage.direction(), settings.fine());
+            case Volume4Fine:
+                return track.volume(3, midiMessage.direction(), settings.fine());
+            case Volume5Fine:
+                return track.volume(4, midiMessage.direction(), settings.fine());
+            case Volume6Fine:
+                return track.volume(5, midiMessage.direction(), settings.fine());
+            case Volume7Fine:
+                return track.volume(6, midiMessage.direction(), settings.fine());
+            case Volume8Fine:
+                return track.volume(7, midiMessage.direction(), settings.fine());
+            case Volume9Fine:
+                return track.volume(8, midiMessage.direction(), settings.fine());
+            case Volume10Fine:
+                return track.volume(9, midiMessage.direction(), settings.fine());
+            case Volume11Fine:
+                return track.volume(10, midiMessage.direction(), settings.fine());
+            case Volume12Fine:
+                return track.volume(11, midiMessage.direction(), settings.fine());
+            case Volume13Fine:
+                return track.volume(12, midiMessage.direction(), settings.fine());
+            case Volume14Fine:
+                return track.volume(13, midiMessage.direction(), settings.fine());
+            case Volume15Fine:
+                return track.volume(14, midiMessage.direction(), settings.fine());
+            case Volume16Fine:
+                return track.volume(15, midiMessage.direction(), settings.fine());
 
             case VolumeTrackBankNext:
                 return track.next();

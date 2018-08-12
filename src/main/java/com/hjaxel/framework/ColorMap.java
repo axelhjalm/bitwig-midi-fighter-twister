@@ -185,7 +185,7 @@ public class ColorMap {
     }
 
     public TwisterColor get(float red, float green, float blue){
-        TwisterColor bestMatch = map.get(0);
+        TwisterColor bestMatch = new TwisterColor(0, 0, 0, 0);
         float v = bestMatch.distance(red, green, blue);
         for (TwisterColor c : map) {
             float distance = c.distance(red, green, blue);

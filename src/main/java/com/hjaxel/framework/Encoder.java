@@ -126,6 +126,23 @@ public enum Encoder {
     Volume15(MidiChannel.CHANNEL_0, 62),
     Volume16(MidiChannel.CHANNEL_0, 63),
 
+    Volume1Fine(MidiChannel.CHANNEL_4, 48),
+    Volume2Fine(MidiChannel.CHANNEL_4, 49),
+    Volume3Fine(MidiChannel.CHANNEL_4, 50),
+    Volume4Fine(MidiChannel.CHANNEL_4, 51),
+    Volume5Fine(MidiChannel.CHANNEL_4, 52),
+    Volume6Fine(MidiChannel.CHANNEL_4, 53),
+    Volume7Fine(MidiChannel.CHANNEL_4, 54),
+    Volume8Fine(MidiChannel.CHANNEL_4, 55),
+    Volume9Fine(MidiChannel.CHANNEL_4, 56),
+    Volume10Fine(MidiChannel.CHANNEL_4, 57),
+    Volume11Fine(MidiChannel.CHANNEL_4, 58),
+    Volume12Fine(MidiChannel.CHANNEL_4, 59),
+    Volume13Fine(MidiChannel.CHANNEL_4, 60),
+    Volume14Fine(MidiChannel.CHANNEL_4, 61),
+    Volume15Fine(MidiChannel.CHANNEL_4, 62),
+    Volume16Fine(MidiChannel.CHANNEL_4, 63),
+
     VolumeTrackBankPrevious(MidiChannel.CHANNEL_3, 29),
     VolumeTrackBankNext(MidiChannel.CHANNEL_3, 31),
     ;
