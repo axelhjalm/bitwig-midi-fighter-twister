@@ -91,11 +91,9 @@ public class MidiMessageParser {
 
             case Color:
                 return () -> {
-                    twister.color(39, midiMessage.getVelocity());
-                    ColorMap.TwisterColor twisterColor = colorMap.get(midiMessage.getVelocity());
-
-                    track.color(twisterColor);
-
+                    //twister.color(Encoder.Color.getCc(), midiMessage.getVelocity());
+                    //ColorMap.TwisterColor twisterColor = colorMap.get(midiMessage.getVelocity());
+                    track.color(midiMessage.direction());
                 };
 
             // device

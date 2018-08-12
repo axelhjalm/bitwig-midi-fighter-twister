@@ -112,6 +112,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             twister.color(32, colorMap.get(r, g, b).twisterValue);
             twister.color(33, colorMap.get(r, g, b).twisterValue);
             twister.color(34, colorMap.get(r, g, b).twisterValue);
+            twister.color(39, colorMap.get(r, g, b).twisterValue);
         });
 
 
@@ -227,14 +228,14 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private void addSendObservers() {
         SendBank sendBank = cursorTrack.sendBank();
-        sendBank.getItemAt(0).value().addValueObserver(128, value -> midiOut.sendMidi(176, 40, value));
-        sendBank.getItemAt(1).value().addValueObserver(128, value -> midiOut.sendMidi(176, 41, value));
-        sendBank.getItemAt(2).value().addValueObserver(128, value -> midiOut.sendMidi(176, 42, value));
-        sendBank.getItemAt(3).value().addValueObserver(128, value -> midiOut.sendMidi(176, 43, value));
-        sendBank.getItemAt(4).value().addValueObserver(128, value -> midiOut.sendMidi(176, 44, value));
-        sendBank.getItemAt(5).value().addValueObserver(128, value -> midiOut.sendMidi(176, 45, value));
-        sendBank.getItemAt(6).value().addValueObserver(128, value -> midiOut.sendMidi(176, 46, value));
-        sendBank.getItemAt(7).value().addValueObserver(128, value -> midiOut.sendMidi(176, 47, value));
+        for (int i = 0; i < 8; i++) {
+            Send send = sendBank.getItemAt(i);
+            final int x = i;
+            send.sendChannelColor().addValueObserver((r, g, b) -> {
+                twister.color(40 + x, colorMap.get(r, g, b).twisterValue);
+            });
+            send.value().addValueObserver(128, value -> midiOut.sendMidi(176, 40 + x, value));
+        }
     }
 
     private void addParameterPageControls() {

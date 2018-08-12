@@ -19,6 +19,7 @@
 package com.hjaxel.command.factory;
 
 import com.bitwig.extension.controller.api.CursorTrack;
+import com.bitwig.extension.controller.api.SettableColorValue;
 import com.bitwig.extension.controller.api.Track;
 import com.bitwig.extension.controller.api.TrackBank;
 import com.hjaxel.UserSettings;
@@ -108,7 +109,10 @@ public class TrackCommandFactory {
         return trackBank::scrollPageBackwards;
     }
 
-    public void color(ColorMap.TwisterColor direction) {
-        track.color().set(direction.red, direction.green, direction.blue);
+    public void color(int direction) {
+        SettableColorValue color = track.color();
+        ColorMap.TwisterColor twisterColor = colorMap.get(color.red(), color.green(), color.blue());
+        ColorMap.TwisterColor newColor = colorMap.get(twisterColor.twisterValue + 1);
+        track.color().set(newColor.red, newColor.green, newColor.blue);
     }
 }
