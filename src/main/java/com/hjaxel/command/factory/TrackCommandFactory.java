@@ -48,18 +48,18 @@ public class TrackCommandFactory {
         colorMap = new ColorMap();
     }
 
-    public PanCommand pan(double value){
+    public PanCommand pan(double value) {
         return new PanCommand(track, value);
     }
 
-    public BitwigCommand volume(int trackNo, int delta, double scale){
+    public BitwigCommand volume(int trackNo, int delta, double scale) {
         return () -> {
             Track item = trackBank.getItemAt(trackNo);
             item.volume().inc(delta, scale);
         };
     }
 
-    public BitwigCommand volume(int trackNo, double value){
+    public BitwigCommand volume(int trackNo, double value) {
         return () -> {
 
             Track item = trackBank.getItemAt(trackNo);
@@ -68,12 +68,21 @@ public class TrackCommandFactory {
         };
     }
 
-    public VolumeCommand volume(double value){
+    public VolumeCommand volume(double value) {
         return new VolumeCommand(track, value);
     }
 
-    public MuteCommand mute(){
+    public MuteCommand mute() {
         return new MuteCommand(track);
+    }
+
+    public BitwigCommand solo(int idx) {
+        return () -> {
+            Track item = trackBank.getItemAt(idx);
+            item.solo().toggle();
+        };
+//    }
+//        return new SoloCommand(item);
     }
 
     public BitwigCommand solo() {
@@ -85,15 +94,15 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand scroll(int direction) {
-        return () ->{
-                trackNavigation.onChange(64 + direction);
-                ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
-                twister.color(0, twisterColor.twisterValue);
-                twister.color(1, twisterColor.twisterValue);
-                twister.color(2, twisterColor.twisterValue);
-                twister.color(32, twisterColor.twisterValue);
-                twister.color(33, twisterColor.twisterValue);
-                twister.color(34, twisterColor.twisterValue);
+        return () -> {
+            trackNavigation.onChange(64 + direction);
+            ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
+            twister.color(0, twisterColor.twisterValue);
+            twister.color(1, twisterColor.twisterValue);
+            twister.color(2, twisterColor.twisterValue);
+            twister.color(32, twisterColor.twisterValue);
+            twister.color(33, twisterColor.twisterValue);
+            twister.color(34, twisterColor.twisterValue);
         };
     }
 
@@ -112,7 +121,7 @@ public class TrackCommandFactory {
     public void color(int direction) {
         SettableColorValue color = track.color();
         ColorMap.TwisterColor twisterColor = colorMap.get(color.red(), color.green(), color.blue());
-        ColorMap.TwisterColor newColor = colorMap.get(twisterColor.twisterValue + 1);
+        ColorMap.TwisterColor newColor = colorMap.get(twisterColor.twisterValue + direction);
         track.color().set(newColor.red, newColor.green, newColor.blue);
     }
 }
