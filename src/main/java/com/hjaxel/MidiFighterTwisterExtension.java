@@ -75,7 +75,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         createCursorTrack();
         addListeners(transport);
 
-
         trackBank = host.createTrackBank(16, 0, 0);
         this.trackBank.followCursorTrack(cursorTrack);
 
@@ -132,10 +131,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private void addListeners(Transport transport) {
-        addListener(Encoder.Volume, cursorTrack.getVolume());
-        addListener(Encoder.SendVolume, cursorTrack.getVolume());
-        addListener(Encoder.Pan, cursorTrack.getPan());
-        addListener(Encoder.SendPan, cursorTrack.getPan());
+        addListener(Encoder.Volume, cursorTrack.volume());
+        addListener(Encoder.SendVolume, cursorTrack.volume());
+        addListener(Encoder.Pan, cursorTrack.pan());
+        addListener(Encoder.SendPan, cursorTrack.pan());
         addListener(Encoder.PlayPulse, transport.isPlaying());
         addListener(Encoder.SendPlayPulse, transport.isPlaying());
     }
@@ -159,8 +158,8 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private BooleanValueChangedCallback onTrackFocus() {
         return trackSelected -> {
             if (trackSelected) {
-                Encoder.Volume.send(midiOut, midiValue(cursorTrack.getVolume()));
-                Encoder.Pan.send(midiOut, midiValue(cursorTrack.getPan()));
+                Encoder.Volume.send(midiOut, midiValue(cursorTrack.volume()));
+                Encoder.Pan.send(midiOut, midiValue(cursorTrack.pan()));
             }
         };
     }
@@ -213,7 +212,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             twister.color(48 + index, colorMap.get(r, g, b).twisterValue);
         });
 
-        trackBank.getItemAt(index).getVolume().value().addValueObserver(128, value -> {
+        trackBank.getItemAt(index).volume().value().addValueObserver(128, value -> {
             SettableColorValue color = settableColorValue;
             midiOut.sendMidi(176, 48 + index, value);
             midiOut.sendMidi(180, 48 + index, value);

@@ -31,6 +31,6 @@ public class ResetPanCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorTrack.getPan().reset();
+        cursorTrack.pan().reset();
     }
 }

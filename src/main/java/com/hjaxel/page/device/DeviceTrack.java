@@ -55,8 +55,8 @@ public class DeviceTrack extends MidiFighterTwisterControl {
 
         popupBrowser = null;//super.host().createPopupBrowser();
 
-        addListener(Encoder.Volume, cursorTrack().getVolume());
-        addListener(Encoder.Pan, cursorTrack().getPan());
+        addListener(Encoder.Volume, cursorTrack().volume());
+        addListener(Encoder.Pan, cursorTrack().pan());
         addListener(Encoder.PlayPulse, transport().isPlaying());
 
 
@@ -70,8 +70,8 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private BooleanValueChangedCallback onTrackFocus() {
         return trackSelected -> {
             if (trackSelected) {
-                Encoder.Volume.send(midiOut(), midiValue(cursorTrack().getVolume()));
-                Encoder.Pan.send(midiOut(), midiValue(cursorTrack().getPan()));
+                Encoder.Volume.send(midiOut(), midiValue(cursorTrack().volume()));
+                Encoder.Pan.send(midiOut(), midiValue(cursorTrack().pan()));
             }
         };
     }
@@ -91,10 +91,10 @@ public class DeviceTrack extends MidiFighterTwisterControl {
             Encoder encoder = optional.get();
             switch (encoder) {
                 case Mute:
-                    cursorTrack().getMute().toggle();
+                    cursorTrack().mute().toggle();
                     break;
                 case Solo:
-                    cursorTrack().getSolo().toggle();
+                    cursorTrack().solo().toggle();
                     break;
                 case Play:
                     transport().togglePlay();
@@ -190,13 +190,13 @@ public class DeviceTrack extends MidiFighterTwisterControl {
     private void handleTrackControl(MidiMessage msg) {
         if (msg.getCc() == 1) {
             if (msg.getChannel() == MidiChannel.CHANNEL_0) {
-                cursorTrack().getVolume().value().set(msg.getVelocity(), 128);
+                cursorTrack().volume().value().set(msg.getVelocity(), 128);
             }
         } else if (msg.getCc() == 2) {
             if (msg.getChannel() == MidiChannel.CHANNEL_1) {
-                cursorTrack().getPan().reset();
+                cursorTrack().pan().reset();
             } else if (msg.getChannel() == MidiChannel.CHANNEL_0) {
-                cursorTrack().getPan().set(msg.getVelocity(), 128);
+                cursorTrack().pan().set(msg.getVelocity(), 128);
             }
         }
     }

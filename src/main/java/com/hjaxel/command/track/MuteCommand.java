@@ -31,6 +31,6 @@ public class MuteCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorTrack.getMute().toggle();
+        cursorTrack.mute().toggle();
     }
 }

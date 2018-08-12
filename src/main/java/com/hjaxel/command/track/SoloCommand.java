@@ -31,6 +31,6 @@ public class SoloCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorTrack.getSolo().toggle();
+        cursorTrack.solo().toggle();
     }
 }

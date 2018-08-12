@@ -55,7 +55,7 @@ public class TrackCommandFactory {
     public BitwigCommand volume(int trackNo, int delta, double scale){
         return () -> {
             Track item = trackBank.getItemAt(trackNo);
-            item.getVolume().inc(delta, scale);
+            item.volume().inc(delta, scale);
         };
     }
 
@@ -64,7 +64,7 @@ public class TrackCommandFactory {
 
             Track item = trackBank.getItemAt(trackNo);
 
-            item.getVolume().set(value, 128);
+            item.volume().set(value, 128);
         };
     }
 

@@ -17,8 +17,7 @@
 	</repositories>
 
 	<properties>
-		<!--<bitwig.extension.directory>.</bitwig.extension.directory>-->
-		<bitwig.extension.directory>C:\Users\axelh\Documents\Bitwig Studio\Extensions</bitwig.extension.directory>
+		<bitwig.extension.directory>.</bitwig.extension.directory>
 	</properties>
 
 
@@ -26,7 +25,7 @@
 		<dependency>
 			<groupId>com.bitwig</groupId>
 			<artifactId>extension-api</artifactId>
-			<version>3</version>
+			<version>6</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -49,6 +48,10 @@
 					<target>1.8</target>
 					<encoding>UTF-8</encoding>
 					<maxmem>1024m</maxmem>
+					<compilerArgs>
+						<arg>-Xlint:all</arg>
+						<arg>-Werror</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 
