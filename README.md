@@ -51,16 +51,16 @@ Under Settings > Controllers are setting for the Midi Fighter Twister Controller
 Press BL (Bottom Left button) to go to mix page. Press top left to go to device page
 
 The eight rightmost knobs controls Send 1 - Send 8, press to set value of that send to 0
-1: Scroll through tracks
-2: Position in track, press to play / stop
-5: Zoom in / out in selected window (arranger / clip)
-6: Track pan, press to reset to middle  
-10: Track volume, press to toggle mute
-12: Start of loop section, press to toggle loop
-13: End of loop section, press to toggle loop
+1-4. Same as device page (scroll track, volume, pan, play head and play/stop)
+5: Start of loop section, press to toggle loop
+6: End of loop section, press to toggle loop
+7: Zoom in / out in selected window (arranger / clip), press to zoom to fit. Need to select arranger window or clip.
+8: Select color of track/send
+9-16: Send amount. Will use the color of the FX track. Press to reset to zero
 
-
-
+### 16 track volume mixer
+Press TR (top right) to access. Here you can adjust volume (turn knob) and solo tracks (press button).
+User top left and bottom left buttons to scroll 16 tracks at a time.
 
 ### 16 pad drum sequencer
 This mode must be used on a clip the size of one measure (16 x 16th notes) together till Bitwig Drum Machine. Might work with other devices but has not been tested properly. 
