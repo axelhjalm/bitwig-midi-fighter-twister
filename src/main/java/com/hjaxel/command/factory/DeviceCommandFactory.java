@@ -18,12 +18,16 @@
 
 package com.hjaxel.command.factory;
 
-import com.bitwig.extension.controller.api.*;
+import com.bitwig.extension.controller.api.CursorDevice;
+import com.bitwig.extension.controller.api.CursorRemoteControlsPage;
+import com.bitwig.extension.controller.api.PopupBrowser;
+import com.bitwig.extension.controller.api.RemoteControl;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.device.*;
-import com.hjaxel.command.transport.ScrollPlayHeadCommand;
 import com.hjaxel.navigation.CursorNavigator;
+
+import java.util.function.Consumer;
 
 public class DeviceCommandFactory {
 
@@ -43,6 +47,13 @@ public class DeviceCommandFactory {
 
     public ChangeParameterCommand parameter(int index, double scale, int delta) {
         RemoteControl remoteControl = remoteControlsPage.getParameter(index);
+        return new ChangeParameterCommand(remoteControl, cursorDevice, scale, delta);
+    }
+
+    public ChangeParameterCommand parameter(int index, double scale, int delta, Consumer<String> s) {
+        RemoteControl remoteControl = remoteControlsPage.getParameter(index);
+        s.accept(remoteControl.name().get());
+
         return new ChangeParameterCommand(remoteControl, cursorDevice, scale, delta);
     }
 

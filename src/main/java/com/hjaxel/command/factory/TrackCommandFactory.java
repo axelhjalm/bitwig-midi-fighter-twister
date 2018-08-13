@@ -48,10 +48,6 @@ public class TrackCommandFactory {
         colorMap = new ColorMap();
     }
 
-    public PanCommand pan(double value) {
-        return new PanCommand(track, value);
-    }
-
     public BitwigCommand volume(int trackNo, int delta, double scale) {
         return () -> {
             Track item = trackBank.getItemAt(trackNo);
@@ -59,17 +55,12 @@ public class TrackCommandFactory {
         };
     }
 
-    public BitwigCommand volume(int trackNo, double value) {
-        return () -> {
-
-            Track item = trackBank.getItemAt(trackNo);
-
-            item.volume().set(value, 128);
-        };
+    public BitwigCommand volume(int direction, double scale) {
+        return () -> track.volume().inc(direction, scale);
     }
 
-    public VolumeCommand volume(double value) {
-        return new VolumeCommand(track, value);
+    public BitwigCommand pan(int direction, double scale) {
+        return () -> track.pan().inc(direction, scale);
     }
 
     public MuteCommand mute() {
@@ -81,8 +72,6 @@ public class TrackCommandFactory {
             Track item = trackBank.getItemAt(idx);
             item.solo().toggle();
         };
-//    }
-//        return new SoloCommand(item);
     }
 
     public BitwigCommand solo() {
@@ -124,4 +113,5 @@ public class TrackCommandFactory {
         ColorMap.TwisterColor newColor = colorMap.get(twisterColor.twisterValue + direction);
         track.color().set(newColor.red, newColor.green, newColor.blue);
     }
+
 }

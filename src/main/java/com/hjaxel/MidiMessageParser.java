@@ -72,10 +72,10 @@ public class MidiMessageParser {
                 return track.solo();
             case Pan:
             case SendPan:
-                return track.pan(midiMessage.getVelocity());
+                return track.pan(midiMessage.direction(), settings.fine());
             case Volume:
             case SendVolume:
-                return track.volume(midiMessage.getVelocity());
+                return track.volume( midiMessage.direction(), settings.fine());
             case PanReset:
             case SendPanReset:
                 return track.panReset();
@@ -91,8 +91,6 @@ public class MidiMessageParser {
 
             case Color:
                 return () -> {
-                    //twister.color(Encoder.Color.getCc(), midiMessage.getVelocity());
-                    //ColorMap.TwisterColor twisterColor = colorMap.get(midiMessage.getVelocity());
                     track.color(midiMessage.direction());
                 };
 
@@ -110,7 +108,7 @@ public class MidiMessageParser {
             case PresetCommit:
                 return device.selectPresetsCommand();
             case Parameter1:
-                return device.parameter(0, settings.coarse(), midiMessage.direction());
+                return device.parameter(0, settings.coarse(), midiMessage.direction(), c);
             case Parameter2:
                 return device.parameter(1, settings.coarse(), midiMessage.direction());
             case Parameter3:

@@ -85,6 +85,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, this.trackBank, settings, twister);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
+
+
+
         DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
 
         addParameterPageControls();
@@ -238,7 +241,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private void addParameterPageControls() {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < remoteControlsPage.getParameterCount(); i++) {
             RemoteControl parameter = remoteControlsPage.getParameter(i);
             parameter.name().markInterested();
             final int x = i;
