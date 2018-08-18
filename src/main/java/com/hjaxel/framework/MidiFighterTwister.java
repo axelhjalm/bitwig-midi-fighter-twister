@@ -44,7 +44,20 @@ public class MidiFighterTwister {
         midiOut.sendMidi(147, 3, 127);
     }
 
+
+    public void startFlash(int cc) {
+        midiOut.sendMidi(MidiChannel.CHANNEL_2.value()  , cc, 6);
+    }
+
+    public void stopFlash(int cc) {
+        midiOut.sendMidi(MidiChannel.CHANNEL_2.value(), cc, 0);
+    }
+
     public void color(int cc, int val) {
         midiOut.sendMidi(177, cc, val);
+    }
+
+    public void color(Encoder e, ColorMap.TwisterColor c) {
+        midiOut.sendMidi(177, e.getCc(), c.twisterValue);
     }
 }

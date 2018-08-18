@@ -50,6 +50,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private TrackBank trackBank;
     private MidiFighterTwister twister;
     private ColorMap colorMap;
+    private TrackBank bank;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -73,20 +74,31 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         Transport transport = host.createTransport();
         transport.isArrangerLoopEnabled().markInterested();
         createCursorTrack();
+
         addListeners(transport);
 
-        trackBank = host.createTrackBank(16, 0, 0);
+        trackBank = host.createTrackBank(128, 0, 0, true);
         this.trackBank.followCursorTrack(cursorTrack);
+        trackBank.cursorIndex().markInterested();
+
+        bank = host.createTrackBank(128, 0, 0, true);
+        twister = new MidiFighterTwister(midiOut);
+        Tracks volumes = new Tracks(bank, twister);
 
         addVolumeObservers();
 
-        twister = new MidiFighterTwister(midiOut);
         device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, this.trackBank, settings, twister);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, this.trackBank, twister, volumes);
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
 
 
+        for (int index = 0; index < bank.getSizeOfBank(); index++) {
+            bank.getItemAt(index).color().markInterested();
+            bank.getItemAt(index).solo().addValueObserver(solo -> {
+                volumes.flush();
+            });
+        }
 
         DeviceCommandFactory deviceFactory = new DeviceCommandFactory(remoteControlsPage, device, host.createPopupBrowser(), settings);
 
@@ -211,6 +223,16 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         SettableColorValue settableColorValue = trackBank.getItemAt(index).color();
         settableColorValue.markInterested();
 
+        trackBank.getItemAt(index).isActivated().markInterested();
+        bank.getItemAt(index).isActivated().markInterested();
+        trackBank.getItemAt(index).isGroup().markInterested();
+        bank.getItemAt(index).isGroup().markInterested();
+        trackBank.getItemAt(index).trackType().markInterested();
+        trackBank.getItemAt(index).solo().markInterested();
+        bank.getItemAt(index).trackType().markInterested();
+        bank.getItemAt(index).solo().markInterested();
+
+
         settableColorValue.addValueObserver((r, g, b) -> {
             twister.color(48 + index, colorMap.get(r, g, b).twisterValue);
         });
@@ -223,7 +245,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private void addVolumeObservers() {
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < trackBank.getSizeOfBank(); i++) {
             observeVolume(i);
         }
     }
