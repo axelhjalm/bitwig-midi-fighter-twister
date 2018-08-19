@@ -26,7 +26,6 @@ import com.hjaxel.command.application.ZoomToFitCommand;
 import com.hjaxel.command.factory.DeviceCommandFactory;
 import com.hjaxel.command.factory.TrackCommandFactory;
 import com.hjaxel.command.factory.TransportCommandFactory;
-import com.hjaxel.framework.ColorMap;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
@@ -41,7 +40,6 @@ public class MidiMessageParser {
     private final UserSettings settings;
     private Application application;
     private final MidiFighterTwister twister;
-    private ColorMap colorMap;
 
     public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
                              UserSettings settings, Application application, MidiFighterTwister twister) {
@@ -51,7 +49,6 @@ public class MidiMessageParser {
         this.settings = settings;
         this.application = application;
         this.twister = twister;
-        colorMap = new ColorMap();
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {

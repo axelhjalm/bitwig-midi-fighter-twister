@@ -39,29 +39,33 @@ public class TrackCommandFactory {
     private final TrackBank trackBank;
     private final Debounce debounce;
     private final Tracks tracks;
-    private final Tracks volumes;
     private MidiFighterTwister twister;
     private final ColorMap colorMap;
 
 
-    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, MidiFighterTwister twister, Tracks volumes) {
+    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, MidiFighterTwister twister, UserSettings settings, Consumer<String> log) {
         this.track = track;
-        this.volumes = volumes;
         this.track.color().markInterested();
         this.trackBank = trackBank;
         this.twister = twister;
         colorMap = new ColorMap();
 
-        this.tracks = new Tracks(trackBank, twister);
-        this.debounce = new Debounce();
+        this.tracks = new Tracks(trackBank, twister, log);
+        this.debounce = new Debounce(settings);
     }
 
     static class Debounce {
         private final int n = 5;
         private final AtomicInteger c = new AtomicInteger(0);
+        private UserSettings settings;
+
+        public Debounce(UserSettings settings) {
+
+            this.settings = settings;
+        }
 
         boolean ok() {
-            return c.getAndIncrement() % n == 0;
+            return c.getAndIncrement() % settings.getNavigationSpeed() == 0;
         }
 
     }
@@ -69,8 +73,7 @@ public class TrackCommandFactory {
 
     public BitwigCommand volume(int trackNo, int delta, double scale) {
         return () -> {
-            //Track item = trackBank.getItemAt(trackNo);
-            Track item = volumes.get(trackNo);
+            Track item = trackBank.getItemAt(trackNo);
             item.volume().inc(delta, scale);
         };
     }
@@ -89,7 +92,7 @@ public class TrackCommandFactory {
 
     public BitwigCommand solo(int idx) {
         return () -> {
-            Track item = volumes.get(idx);
+            Track item = trackBank.getItemAt(idx);
             item.solo().toggle();
         };
     }
@@ -114,7 +117,6 @@ public class TrackCommandFactory {
                 tracks.previous();
             }
 
-
             ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
             twister.color(Encoder.Track, twisterColor);
             twister.color(Encoder.Volume, twisterColor);
@@ -131,11 +133,11 @@ public class TrackCommandFactory {
     }
 
     public BitwigCommand next() {
-        return volumes::nextPage;
+        return trackBank::scrollPageForwards;
     }
 
     public BitwigCommand previous() {
-        return volumes::previousPage;
+        return trackBank::scrollPageBackwards;
     }
 
     public void color(int direction) {
