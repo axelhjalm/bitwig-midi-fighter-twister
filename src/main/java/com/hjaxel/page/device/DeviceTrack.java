@@ -49,8 +49,8 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         this.fineControl = fineControl;
 
         cursorDevice = cursorTrack().createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 0, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        //cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
-        //cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
+        cursorTrack().addIsSelectedInMixerObserver(onTrackFocus());
+        cursorTrack().addIsSelectedInEditorObserver(onTrackFocus());
         remoteControlsPage = cursorDevice.createCursorRemoteControlsPage(NO_OF_CONTROLS);
 
         popupBrowser = null;//super.host().createPopupBrowser();
@@ -58,11 +58,6 @@ public class DeviceTrack extends MidiFighterTwisterControl {
         addListener(Encoder.Volume, cursorTrack().volume());
         addListener(Encoder.Pan, cursorTrack().pan());
         addListener(Encoder.PlayPulse, transport().isPlaying());
-
-
-//        navigators.put(0, new CursorNavigator(cursorTrack(), cursorSpeed));
-//        navigators.put(4, new CursorNavigator(remoteControlsPage, cursorSpeed));
-//        navigators.put(5, new CursorNavigator(cursorDevice, cursorSpeed));
 
         addParameterPageControls();
     }

@@ -20,12 +20,14 @@ package com.hjaxel.framework;
 
 import com.bitwig.extension.controller.api.MidiOut;
 
+import java.util.Objects;
+
 public class MidiFighterTwister {
 
     private final MidiOut midiOut;
 
     public MidiFighterTwister(MidiOut midiOut) {
-        this.midiOut = midiOut;
+        this.midiOut = Objects.requireNonNull(midiOut, "midiOut");
     }
 
     public void selectBank1() {
@@ -44,7 +46,28 @@ public class MidiFighterTwister {
         midiOut.sendMidi(147, 3, 127);
     }
 
+
+    public void startFlash(int cc) {
+        midiOut.sendMidi(MidiChannel.CHANNEL_2.value(), cc, 6);
+    }
+
+    public void stopFlash(int cc) {
+        midiOut.sendMidi(MidiChannel.CHANNEL_2.value(), cc, 0);
+    }
+
     public void color(int cc, int val) {
+        if (val < 0 || val > 127 || cc < 0 || cc > 127) {
+            throw new IllegalArgumentException("Color for cc=" + cc + ", value=" + val + " illegal");
+        }
         midiOut.sendMidi(177, cc, val);
+    }
+
+    public void color(Encoder e, ColorMap.TwisterColor c) {
+        midiOut.sendMidi(177, e.getCc(), c.twisterValue);
+    }
+
+    public void value(int cc, int value) {
+        midiOut.sendMidi(176, cc, value); // normal mode
+        midiOut.sendMidi(180, cc, value); // default mode
     }
 }

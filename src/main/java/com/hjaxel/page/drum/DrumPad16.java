@@ -22,6 +22,7 @@ import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.ControllerHost;
 import com.bitwig.extension.controller.api.PlayingNote;
 import com.bitwig.extension.controller.api.PlayingNoteArrayValue;
+import com.hjaxel.UserSettings;
 import com.hjaxel.framework.MidiChannel;
 import com.hjaxel.framework.MidiChannelAndRange;
 import com.hjaxel.framework.MidiFighterTwisterColor;
@@ -52,11 +53,12 @@ public class DrumPad16 extends MidiFighterTwisterControl {
             MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 16, 19)
     );
     private final Clip clip;
+    private UserSettings settings;
 
 
-
-    public DrumPad16(ControllerHost host) {
+    public DrumPad16(ControllerHost host, UserSettings settings) {
         super(host, 16);
+        this.settings = settings;
 
         populateNoteToEncoderMap();
         this.clip = host.createLauncherCursorClip(127, 127);
@@ -164,6 +166,11 @@ public class DrumPad16 extends MidiFighterTwisterControl {
     }
 
     private boolean handle(MidiMessage midiMessage) {
+
+        if(!settings.isPage2DrumMode()){
+            return true;
+        }
+
         switch (midiMessage.getChannel()) {
             case CHANNEL_3:
                 if (midiMessage.getCc() == 16) {

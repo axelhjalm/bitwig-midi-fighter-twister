@@ -18,42 +18,57 @@
 
 package com.hjaxel.command.factory;
 
-import com.bitwig.extension.controller.api.CursorTrack;
-import com.bitwig.extension.controller.api.SettableColorValue;
-import com.bitwig.extension.controller.api.Track;
-import com.bitwig.extension.controller.api.TrackBank;
+import com.bitwig.extension.controller.api.*;
 import com.hjaxel.UserSettings;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.track.*;
 import com.hjaxel.framework.ColorMap;
+import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
+import com.hjaxel.framework.Tracks;
 import com.hjaxel.navigation.CursorNavigator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class TrackCommandFactory {
 
-    private final CursorNavigator trackNavigation;
     private final CursorTrack track;
-    private final TrackBank trackBank;
+    private final Debounce debounce;
+    private final Tracks tracks;
     private MidiFighterTwister twister;
     private final ColorMap colorMap;
 
-    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, UserSettings settings, MidiFighterTwister twister) {
+
+    public TrackCommandFactory(CursorTrack track, MidiFighterTwister twister, UserSettings settings, Tracks tracks) {
         this.track = track;
+        this.tracks = tracks;
         this.track.color().markInterested();
-        this.trackBank = trackBank;
         this.twister = twister;
-        trackNavigation = new CursorNavigator(track, settings);
         colorMap = new ColorMap();
+
+        this.debounce = new Debounce(settings);
     }
 
-    public BitwigCommand volume(int trackNo, int delta, double scale) {
-        return () -> {
-            Track item = trackBank.getItemAt(trackNo);
-            item.volume().inc(delta, scale);
-        };
+    static class Debounce {
+        private final int n = 5;
+        private final AtomicInteger c = new AtomicInteger(0);
+        private UserSettings settings;
+
+        public Debounce(UserSettings settings) {
+
+            this.settings = settings;
+        }
+
+        boolean ok() {
+            return c.getAndIncrement() % settings.getNavigationSpeed() == 0;
+        }
+
     }
+
+
 
     public BitwigCommand volume(int direction, double scale) {
         return () -> track.volume().inc(direction, scale);
@@ -67,12 +82,7 @@ public class TrackCommandFactory {
         return new MuteCommand(track);
     }
 
-    public BitwigCommand solo(int idx) {
-        return () -> {
-            Track item = trackBank.getItemAt(idx);
-            item.solo().toggle();
-        };
-    }
+
 
     public BitwigCommand solo() {
         return new SoloCommand(track);
@@ -84,28 +94,31 @@ public class TrackCommandFactory {
 
     public BitwigCommand scroll(int direction) {
         return () -> {
-            trackNavigation.onChange(64 + direction);
+            if (!debounce.ok()) {
+                return;
+            }
+
+            if (direction > 0) {
+                tracks.next();
+            } else if (direction < 0) {
+                tracks.previous();
+            }
+
             ColorMap.TwisterColor twisterColor = colorMap.get(track.color().red(), track.color().green(), track.color().blue());
-            twister.color(0, twisterColor.twisterValue);
-            twister.color(1, twisterColor.twisterValue);
-            twister.color(2, twisterColor.twisterValue);
-            twister.color(32, twisterColor.twisterValue);
-            twister.color(33, twisterColor.twisterValue);
-            twister.color(34, twisterColor.twisterValue);
+            twister.color(Encoder.Track, twisterColor);
+            twister.color(Encoder.Volume, twisterColor);
+            twister.color(Encoder.Pan, twisterColor);
+            twister.color(Encoder.SendTrackScroll, twisterColor);
+            twister.color(Encoder.SendVolume, twisterColor);
+            twister.color(Encoder.SendPan, twisterColor);
         };
     }
+
 
     public BitwigCommand send(int sendNo, int velocity, Consumer<String> c) {
         return new SendCommand(track, sendNo, velocity, c);
     }
 
-    public BitwigCommand next() {
-        return trackBank::scrollPageForwards;
-    }
-
-    public BitwigCommand previous() {
-        return trackBank::scrollPageBackwards;
-    }
 
     public void color(int direction) {
         SettableColorValue color = track.color();

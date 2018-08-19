@@ -19,16 +19,19 @@
 package com.hjaxel.command.application;
 
 import com.bitwig.extension.controller.api.Application;
+import com.bitwig.extension.controller.api.Clip;
 import com.hjaxel.command.BitwigCommand;
 
 public class ZoomCommand implements BitwigCommand {
 
     private Application application;
     private int direction;
+    private Clip clip;
 
     public ZoomCommand(Application application, int direction) {
         this.application = application;
         this.direction = direction;
+        this.clip = clip;
     }
 
     @Override

@@ -18,6 +18,9 @@
 
 package com.hjaxel.framework;
 
+import com.bitwig.extension.api.Color;
+import com.bitwig.extension.controller.api.SettableColorValue;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,6 +185,11 @@ public class ColorMap {
         map.add(new TwisterColor(125, 29, 226, 173));
         map.add(new TwisterColor(126, 28, 226, 165));
         map.add(new TwisterColor(127, 27, 226, 155));
+    }
+
+
+    public TwisterColor get(SettableColorValue color){
+        return get(color.red(), color.green(), color.blue());
     }
 
     public TwisterColor get(float red, float green, float blue){

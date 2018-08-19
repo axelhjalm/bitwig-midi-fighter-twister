@@ -19,6 +19,7 @@
 package com.hjaxel;
 
 import com.bitwig.extension.controller.api.Application;
+import com.bitwig.extension.controller.api.Clip;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
 import com.hjaxel.command.application.ZoomCommand;
@@ -26,7 +27,7 @@ import com.hjaxel.command.application.ZoomToFitCommand;
 import com.hjaxel.command.factory.DeviceCommandFactory;
 import com.hjaxel.command.factory.TrackCommandFactory;
 import com.hjaxel.command.factory.TransportCommandFactory;
-import com.hjaxel.framework.ColorMap;
+import com.hjaxel.page.VolumesPage;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
@@ -41,17 +42,17 @@ public class MidiMessageParser {
     private final UserSettings settings;
     private Application application;
     private final MidiFighterTwister twister;
-    private ColorMap colorMap;
+    private final VolumesPage volumesPage;
 
     public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
-                             UserSettings settings, Application application, MidiFighterTwister twister) {
+                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage) {
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
         this.settings = settings;
         this.application = application;
         this.twister = twister;
-        colorMap = new ColorMap();
+        this.volumesPage = volumesPage;
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
@@ -59,7 +60,7 @@ public class MidiMessageParser {
                 .map(encoder -> toCommand(encoder, midiMessage, c)).orElse(new NoAction(midiMessage));
     }
 
-    private BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage, Consumer<String> c) {
+    private BitwigCommand toCommand(Encoder encoder, MidiMessage midiMessage, Consumer<String> log) {
         switch (encoder) {
             // track
             case Track:
@@ -75,7 +76,7 @@ public class MidiMessageParser {
                 return track.pan(midiMessage.direction(), settings.fine());
             case Volume:
             case SendVolume:
-                return track.volume( midiMessage.direction(), settings.fine());
+                return track.volume(midiMessage.direction(), settings.fine());
             case PanReset:
             case SendPanReset:
                 return track.panReset();
@@ -108,75 +109,48 @@ public class MidiMessageParser {
             case PresetCommit:
                 return device.selectPresetsCommand();
             case Parameter1:
-                return device.parameter(0, settings.coarse(), midiMessage.direction(), c);
             case Parameter2:
-                return device.parameter(1, settings.coarse(), midiMessage.direction());
             case Parameter3:
-                return device.parameter(2, settings.coarse(), midiMessage.direction());
             case Parameter4:
-                return device.parameter(3, settings.coarse(), midiMessage.direction());
             case Parameter5:
-                return device.parameter(4, settings.coarse(), midiMessage.direction());
             case Parameter6:
-                return device.parameter(5, settings.coarse(), midiMessage.direction());
             case Parameter7:
-                return device.parameter(6, settings.coarse(), midiMessage.direction());
             case Parameter8:
-                return device.parameter(7, settings.coarse(), midiMessage.direction());
+                return device.parameter(encoder.knob() - 8, settings.coarse(), midiMessage.direction(), log);
 
             case ParameterFine1:
-                return device.parameter(0, settings.fine(), midiMessage.direction());
             case ParameterFine2:
-                return device.parameter(1, settings.fine(), midiMessage.direction());
             case ParameterFine3:
-                return device.parameter(2, settings.fine(), midiMessage.direction());
             case ParameterFine4:
-                return device.parameter(3, settings.fine(), midiMessage.direction());
             case ParameterFine5:
-                return device.parameter(4, settings.fine(), midiMessage.direction());
             case ParameterFine6:
-                return device.parameter(5, settings.fine(), midiMessage.direction());
             case ParameterFine7:
-                return device.parameter(6, settings.fine(), midiMessage.direction());
             case ParameterFine8:
-                return device.parameter(7, settings.fine(), midiMessage.direction());
+                return device.parameter(encoder.knob() - 8, settings.fine(), midiMessage.direction(), log);
 
 
             case SendTrackScroll:
                 return track.scroll(midiMessage.direction());
             case Send1:
-                return track.send(0, midiMessage.getVelocity(), c);
             case Send2:
-                return track.send(1, midiMessage.getVelocity(), c);
             case Send3:
-                return track.send(2, midiMessage.getVelocity(), c);
             case Send4:
-                return track.send(3, midiMessage.getVelocity(), c);
             case Send5:
-                return track.send(4, midiMessage.getVelocity(), c);
             case Send6:
-                return track.send(5, midiMessage.getVelocity(), c);
             case Send7:
-                return track.send(6, midiMessage.getVelocity(), c);
             case Send8:
-                return track.send(7, midiMessage.getVelocity(), c);
+                return track.send(encoder.knob() - 8, midiMessage.getVelocity(), log);
 
             case SendToggle1:
-                return track.send(0, 0, c);
             case SendToggle2:
-                return track.send(1, 0, c);
             case SendToggle3:
-                return track.send(2, 0, c);
             case SendToggle4:
-                return track.send(3, 0, c);
             case SendToggle5:
-                return track.send(4, 0, c);
             case SendToggle6:
-                return track.send(5, 0, c);
             case SendToggle7:
-                return track.send(6, 0, c);
             case SendToggle8:
-                return track.send(7, 0, c);
+                return track.send(encoder.knob()-8, 0, log);
+
             case ArrangerZoomFull:
                 return new ZoomToFitCommand(application);
             case Zoom:
@@ -195,100 +169,61 @@ public class MidiMessageParser {
             case Device:
                 return () -> application.toggleDevices();
             case Drums:
-                return () -> {};
+                return () -> {
+                };
             case Mixer:
                 return () -> application.toggleMixer();
 
             case GotoMixer:
             case GotoMixer2:
-                return () ->
-                {
-                    twister.selectBank3();
-                    application.toggleMixer();
-                };
+                return twister::selectBank3;
             case GotoDevice:
             case GotoDevice2:
-                return () -> {
-                    twister.selectBank1();
-                    application.toggleDevices();
-                };
+                return twister::selectBank1;
             case GotoVolume:
             case GotoVolume2:
-                return () -> {
-                    twister.selectBank4();
-                    application.toggleMixer();
-                };
+                return twister::selectBank4 ;
 
             case Volume1:
-                return track.volume(0, midiMessage.direction(), settings.fine());
             case Volume2:
-                return track.volume(1, midiMessage.direction(), settings.fine());
             case Volume3:
-                return track.volume(2, midiMessage.direction(), settings.fine());
             case Volume4:
-                return track.volume(3, midiMessage.direction(), settings.fine());
             case Volume5:
-                return track.volume(4, midiMessage.direction(), settings.fine());
             case Volume6:
-                return track.volume(5, midiMessage.direction(), settings.fine());
             case Volume7:
-                return track.volume(6, midiMessage.direction(), settings.fine());
             case Volume8:
-                return track.volume(7, midiMessage.direction(), settings.fine());
             case Volume9:
-                return track.volume(8, midiMessage.direction(), settings.fine());
             case Volume10:
-                return track.volume(9, midiMessage.direction(), settings.fine());
             case Volume11:
-                return track.volume(10, midiMessage.direction(), settings.fine());
             case Volume12:
-                return track.volume(11, midiMessage.direction(), settings.fine());
             case Volume13:
-                return track.volume(12, midiMessage.direction(), settings.fine());
             case Volume14:
-                return track.volume(13, midiMessage.direction(), settings.fine());
             case Volume15:
-                return track.volume(14, midiMessage.direction(), settings.fine());
             case Volume16:
-                return track.volume(15, midiMessage.direction(), settings.fine());
+                return volumesPage.volume(encoder.knob(), midiMessage.direction(), settings.fine());
 
             case Volume1Fine:
-                return track.solo(0);
             case Volume2Fine:
-                return track.solo(1);
             case Volume3Fine:
-                return track.solo(2);
             case Volume4Fine:
-                return track.solo(3);
             case Volume5Fine:
-                return track.solo(4);
             case Volume6Fine:
-                return track.solo(5);
             case Volume7Fine:
-                return track.solo(6);
             case Volume8Fine:
-                return track.solo(7);
             case Volume9Fine:
-                return track.solo(8);
             case Volume10Fine:
-                return track.solo(9);
             case Volume11Fine:
-                return track.solo(10);
             case Volume12Fine:
-                return track.solo(11);
             case Volume13Fine:
-                return track.solo(12);
             case Volume14Fine:
-                return track.solo(13);
             case Volume15Fine:
-                return track.solo(14);
             case Volume16Fine:
-                return track.solo(15);
+                return volumesPage.solo(encoder.knob());
 
             case VolumeTrackBankNext:
-                return track.next();
+                return volumesPage.next();
             case VolumeTrackBankPrevious:
-                return track.previous();
+                return volumesPage.previous();
 
         }
 
