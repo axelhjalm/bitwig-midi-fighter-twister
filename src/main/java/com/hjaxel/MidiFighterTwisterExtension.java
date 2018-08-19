@@ -27,6 +27,7 @@ import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.factory.DeviceCommandFactory;
 import com.hjaxel.command.factory.TrackCommandFactory;
 import com.hjaxel.command.factory.TransportCommandFactory;
+import com.hjaxel.command.factory.VolumesPage;
 import com.hjaxel.framework.*;
 import com.hjaxel.page.MidiFighterTwisterControl;
 import com.hjaxel.page.drum.DrumPad16;
@@ -45,7 +46,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private CursorTrack cursorTrack;
     private MidiOut midiOut;
     private CursorRemoteControlsPage remoteControlsPage;
-    private PinnableCursorDevice device;
     private TrackBank trackBank;
     private MidiFighterTwister twister;
     private ColorMap colorMap;
@@ -82,8 +82,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         trackBank.cursorIndex().markInterested();
         setupMixerPage();
 
-        device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
-        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, this.trackBank, twister, settings, s -> print(s));
+        PinnableCursorDevice device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
+        TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, twister, settings, new Tracks(trackBank, twister, this::print));
+
+        VolumesPage volumesPage = new VolumesPage(host);
 
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
@@ -94,8 +96,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addSendObservers();
 
         midiMessageParser = new MidiMessageParser(trackFactory, transportFactory,
-                deviceFactory, settings, host.createApplication(), twister);
-
+                deviceFactory, settings, host.createApplication(), twister, volumesPage);
 
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
@@ -109,13 +110,14 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         SettableColorValue settableColorValue = cursorTrack.color();
         settableColorValue.markInterested();
         settableColorValue.addValueObserver((r, g, b) -> {
-            twister.color(0, colorMap.get(r, g, b).twisterValue);
-            twister.color(1, colorMap.get(r, g, b).twisterValue);
-            twister.color(2, colorMap.get(r, g, b).twisterValue);
-            twister.color(32, colorMap.get(r, g, b).twisterValue);
-            twister.color(33, colorMap.get(r, g, b).twisterValue);
-            twister.color(34, colorMap.get(r, g, b).twisterValue);
-            twister.color(39, colorMap.get(r, g, b).twisterValue);
+            ColorMap.TwisterColor color = colorMap.get(r, g, b);
+            twister.color(Encoder.Track, color);
+            twister.color(Encoder.Volume, color);
+            twister.color(Encoder.Pan, color);
+            twister.color(Encoder.SendTrackScroll, color);
+            twister.color(Encoder.SendVolume, color);
+            twister.color(Encoder.SendPan, color);
+            twister.color(Encoder.Color, color);
         });
 
 

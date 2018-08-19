@@ -158,6 +158,10 @@ public enum Encoder {
         return cc;
     }
 
+    public int knob(){
+        return this.cc % 16;
+    }
+
     public static Optional<Encoder> from(MidiMessage msg) {
         for (Encoder encoder : Encoder.values()) {
             if (encoder.cc == msg.getCc() && encoder.channel == msg.getChannel()) {

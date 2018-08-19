@@ -36,21 +36,19 @@ import java.util.function.Consumer;
 public class TrackCommandFactory {
 
     private final CursorTrack track;
-    private final TrackBank trackBank;
     private final Debounce debounce;
     private final Tracks tracks;
     private MidiFighterTwister twister;
     private final ColorMap colorMap;
 
 
-    public TrackCommandFactory(CursorTrack track, TrackBank trackBank, MidiFighterTwister twister, UserSettings settings, Consumer<String> log) {
+    public TrackCommandFactory(CursorTrack track, MidiFighterTwister twister, UserSettings settings, Tracks tracks) {
         this.track = track;
+        this.tracks = tracks;
         this.track.color().markInterested();
-        this.trackBank = trackBank;
         this.twister = twister;
         colorMap = new ColorMap();
 
-        this.tracks = new Tracks(trackBank, twister, log);
         this.debounce = new Debounce(settings);
     }
 
@@ -71,12 +69,6 @@ public class TrackCommandFactory {
     }
 
 
-    public BitwigCommand volume(int trackNo, int delta, double scale) {
-        return () -> {
-            Track item = trackBank.getItemAt(trackNo);
-            item.volume().inc(delta, scale);
-        };
-    }
 
     public BitwigCommand volume(int direction, double scale) {
         return () -> track.volume().inc(direction, scale);
@@ -90,12 +82,7 @@ public class TrackCommandFactory {
         return new MuteCommand(track);
     }
 
-    public BitwigCommand solo(int idx) {
-        return () -> {
-            Track item = trackBank.getItemAt(idx);
-            item.solo().toggle();
-        };
-    }
+
 
     public BitwigCommand solo() {
         return new SoloCommand(track);
@@ -132,13 +119,6 @@ public class TrackCommandFactory {
         return new SendCommand(track, sendNo, velocity, c);
     }
 
-    public BitwigCommand next() {
-        return trackBank::scrollPageForwards;
-    }
-
-    public BitwigCommand previous() {
-        return trackBank::scrollPageBackwards;
-    }
 
     public void color(int direction) {
         SettableColorValue color = track.color();
