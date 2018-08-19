@@ -19,6 +19,7 @@
 package com.hjaxel;
 
 import com.bitwig.extension.controller.api.Application;
+import com.bitwig.extension.controller.api.Clip;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
 import com.hjaxel.command.application.ZoomCommand;
@@ -26,7 +27,7 @@ import com.hjaxel.command.application.ZoomToFitCommand;
 import com.hjaxel.command.factory.DeviceCommandFactory;
 import com.hjaxel.command.factory.TrackCommandFactory;
 import com.hjaxel.command.factory.TransportCommandFactory;
-import com.hjaxel.command.factory.VolumesPage;
+import com.hjaxel.page.VolumesPage;
 import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
@@ -175,23 +176,13 @@ public class MidiMessageParser {
 
             case GotoMixer:
             case GotoMixer2:
-                return () ->
-                {
-                    twister.selectBank3();
-                    application.toggleMixer();
-                };
+                return twister::selectBank3;
             case GotoDevice:
             case GotoDevice2:
-                return () -> {
-                    twister.selectBank1();
-                    application.toggleDevices();
-                };
+                return twister::selectBank1;
             case GotoVolume:
             case GotoVolume2:
-                return () -> {
-                    twister.selectBank4();
-                    application.toggleMixer();
-                };
+                return twister::selectBank4 ;
 
             case Volume1:
             case Volume2:

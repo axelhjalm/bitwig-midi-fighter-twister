@@ -19,17 +19,16 @@
 package com.hjaxel;
 
 import com.bitwig.extension.api.util.midi.ShortMidiMessage;
-import com.bitwig.extension.callback.BooleanValueChangedCallback;
 import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
 import com.hjaxel.command.BitwigCommand;
-import com.hjaxel.command.factory.DeviceCommandFactory;
-import com.hjaxel.command.factory.TrackCommandFactory;
-import com.hjaxel.command.factory.TransportCommandFactory;
-import com.hjaxel.command.factory.VolumesPage;
+import com.hjaxel.command.factory.*;
 import com.hjaxel.framework.*;
+import com.hjaxel.page.DevicePage;
 import com.hjaxel.page.MidiFighterTwisterControl;
+import com.hjaxel.page.MixerPage;
+import com.hjaxel.page.VolumesPage;
 import com.hjaxel.page.drum.DrumPad16;
 
 import java.util.ArrayList;
@@ -66,26 +65,24 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         mTransport = host.createTransport();
 
-        listeners.add(new DrumPad16(host));
+        listeners.add(new DrumPad16(host, settings));
         listeners.add(new SideButtonConsumer(host, 0));
+
+        twister = new MidiFighterTwister(midiOut);
+        cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
+        new DevicePage(cursorTrack, twister, midiOut);
 
         Transport transport = host.createTransport();
         transport.isArrangerLoopEnabled().markInterested();
-        createCursorTrack();
-
         addListeners(transport);
 
-        twister = new MidiFighterTwister(midiOut);
-
         trackBank = host.createTrackBank(128, 0, 0, true);
-        trackBank.followCursorTrack(cursorTrack);
-        trackBank.cursorIndex().markInterested();
-        setupMixerPage();
+        new MixerPage(trackBank, cursorTrack);
 
         PinnableCursorDevice device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
         TrackCommandFactory trackFactory = new TrackCommandFactory(cursorTrack, twister, settings, new Tracks(trackBank, twister, this::print));
 
-        VolumesPage volumesPage = new VolumesPage(host);
+        VolumesPage volumesPage = new VolumesPage(host, twister);
 
         TransportCommandFactory transportFactory = new TransportCommandFactory(transport);
         remoteControlsPage = device.createCursorRemoteControlsPage(8);
@@ -95,33 +92,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addParameterPageControls();
         addSendObservers();
 
-        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory,
-                deviceFactory, settings, host.createApplication(), twister, volumesPage);
-
+        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage);
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
 
-
-    private void createCursorTrack() {
-        cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
-        cursorTrack.addIsSelectedInMixerObserver(onTrackFocus());
-        cursorTrack.addIsSelectedInEditorObserver(onTrackFocus());
-
-        SettableColorValue settableColorValue = cursorTrack.color();
-        settableColorValue.markInterested();
-        settableColorValue.addValueObserver((r, g, b) -> {
-            ColorMap.TwisterColor color = colorMap.get(r, g, b);
-            twister.color(Encoder.Track, color);
-            twister.color(Encoder.Volume, color);
-            twister.color(Encoder.Pan, color);
-            twister.color(Encoder.SendTrackScroll, color);
-            twister.color(Encoder.SendVolume, color);
-            twister.color(Encoder.SendPan, color);
-            twister.color(Encoder.Color, color);
-        });
-
-
-    }
 
     private void setupMidiChannels() {
         midiOut = host.getMidiOutPort(0);
@@ -130,7 +104,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private UserSettings createSettings(Preferences preferences) {
-        SettableEnumValue drums = preferences.getEnumSetting("Second page", "Function", new String[]{"Drums", "Unassigned"}, "Drums");
+        SettableEnumValue drums = preferences.getEnumSetting("Second page", "Function", new String[]{"Drums", "Unassigned"}, "Unassigned");
         SettableEnumValue speed = preferences.getEnumSetting("Knob speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
         SettableEnumValue navSpeed = preferences.getEnumSetting("Scroll speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
         return new UserSettings(navSpeed, drums, speed);
@@ -160,19 +134,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         parameter.value().addValueObserver(128, val -> encoder.send(midiOut, val));
     }
 
-
-    private BooleanValueChangedCallback onTrackFocus() {
-        return trackSelected -> {
-            if (trackSelected) {
-                Encoder.Volume.send(midiOut, midiValue(cursorTrack.volume()));
-                Encoder.Pan.send(midiOut, midiValue(cursorTrack.pan()));
-            }
-        };
-    }
-
-    private int midiValue(Parameter p) {
-        return Math.max(0, (int) (127 * p.value().get()));
-    }
 
 
     @Override
@@ -210,48 +171,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private int resolveEncoder(int x) {
         return 8 + x;
-    }
-
-    private void setupChannel(int index) {
-        Track item = trackBank.getItemAt(index);
-        SettableColorValue settableColorValue = item.color();
-        settableColorValue.markInterested();
-//        settableColorValue.addValueObserver((r, g, b) -> {
-//            twister.color(48 + index, colorMap.get(r, g, b).twisterValue);
-//        });
-
-        item.isActivated().markInterested();
-        item.isGroup().markInterested();
-        item.trackType().markInterested();
-        item.solo().markInterested();
-        item.name().markInterested();
-/*
-        item.isActivated().addValueObserver(b -> {
-            if (!b) {
-                twister.color(48 + index, 0);
-            } else {
-                twister.color(48 + index, colorMap.get(item.color()).twisterValue);
-                twister.value(48 + index, (int) (item.volume().get() * 127));
-            }
-        });
-*/
-/*
-        item.solo().addValueObserver(isSolo -> {
-            if (isSolo)
-                twister.startFlash(48 + index);
-            else
-                twister.stopFlash(48 + index);
-        });
-*/
-        item.volume().value().addValueObserver(128, value -> {
-            twister.value(48 + index, value);
-        });
-    }
-
-    private void setupMixerPage() {
-        for (int i = 0; i < trackBank.getSizeOfBank(); i++) {
-            setupChannel(i);
-        }
     }
 
     private void addSendObservers() {

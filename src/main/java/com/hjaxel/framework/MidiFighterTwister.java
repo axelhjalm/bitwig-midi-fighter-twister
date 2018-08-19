@@ -27,7 +27,7 @@ public class MidiFighterTwister {
     private final MidiOut midiOut;
 
     public MidiFighterTwister(MidiOut midiOut) {
-        this.midiOut = midiOut;
+        this.midiOut = Objects.requireNonNull(midiOut, "midiOut");
     }
 
     public void selectBank1() {
