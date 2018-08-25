@@ -52,65 +52,83 @@ public class DrumPad16 extends MidiFighterTwisterControl {
             MidiChannelAndRange.of(MidiChannel.CHANNEL_1, 16, 31),
             MidiChannelAndRange.of(MidiChannel.CHANNEL_3, 16, 19)
     );
-    private final Clip clip;
+    private Clip clip;
     private UserSettings settings;
 
+
+    private boolean isActive() {
+        return this.settings.isPage2DrumMode();
+    }
 
     public DrumPad16(ControllerHost host, UserSettings settings) {
         super(host, 16);
         this.settings = settings;
 
-        populateNoteToEncoderMap();
-        this.clip = host.createLauncherCursorClip(127, 127);
+        if (isActive()) {
+            populateNoteToEncoderMap();
+            this.clip = host.createLauncherCursorClip(127, 127);
 
 
-        this.clip.addStepDataObserver((x, y, state) -> {
-            //TODO: record data into twister
-        });
+            this.clip.addStepDataObserver((x, y, state) -> {
+                //TODO: record data into twister
+            });
 
-        subscribeToClipEvents();
-        addNoteObserver();
-        enableObservers(true);
+            subscribeToClipEvents();
+            addNoteObserver();
+            enableObservers(true);
 
-        addPadListeners(host);
+            addPadListeners(host);
+
+        }
+
     }
 
     private void addPadListeners(ControllerHost host) {
-        for (int i = LOW_NOTE; i <= HIGH_NOTE; i++) {
-            pads.put(i, new DrumSequencer(host, clip, i));
+        if (isActive()) {
+            for (int i = LOW_NOTE; i <= HIGH_NOTE; i++) {
+                pads.put(i, new DrumSequencer(host, clip, i));
+            }
         }
     }
 
     private void addNoteObserver() {
-        PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
-        playingNoteArrayValue.markInterested();
-        playingNoteArrayValue.setIsSubscribed(true);
-        playingNoteArrayValue.addValueObserver(this::noteObserver);
+        if (isActive()) {
+            PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
+            playingNoteArrayValue.markInterested();
+            playingNoteArrayValue.setIsSubscribed(true);
+            playingNoteArrayValue.addValueObserver(this::noteObserver);
+        }
     }
 
     private void subscribeToClipEvents() {
-        this.clip.setIsSubscribed(true);
-        this.clip.playingStep().markInterested();
-        this.clip.getPlayStart().markInterested();
-        this.clip.getPlayStop().markInterested();
-        this.clip.getLoopStart().markInterested();
-        this.clip.getLoopLength().markInterested();
-        this.clip.isLoopEnabled().markInterested();
-        this.clip.getShuffle().markInterested();
-        this.clip.getAccent().markInterested();
-        this.clip.canScrollStepsBackwards().markInterested();
-        this.clip.canScrollStepsForwards().markInterested();
+        if (isActive()) {
+            this.clip.setIsSubscribed(true);
+            this.clip.playingStep().markInterested();
+            this.clip.getPlayStart().markInterested();
+            this.clip.getPlayStop().markInterested();
+            this.clip.getLoopStart().markInterested();
+            this.clip.getLoopLength().markInterested();
+            this.clip.isLoopEnabled().markInterested();
+            this.clip.getShuffle().markInterested();
+            this.clip.getAccent().markInterested();
+            this.clip.canScrollStepsBackwards().markInterested();
+            this.clip.canScrollStepsForwards().markInterested();
+        }
     }
 
     private void populateNoteToEncoderMap() {
-        for (int i = 0; i < 16; i++) {
-            noteToEncoder.put(encoderPadLookup[i], i + 16);
+        if (isActive()) {
+            for (int i = 0; i < 16; i++) {
+                noteToEncoder.put(encoderPadLookup[i], i + 16);
+            }
         }
     }
 
     private void drawOverview() {
+        if(isActive()){
         for (int i = 0; i < 16; i++) {
             ringOff(i);
+        }
 /*
             int key = LOW_NOTE + i;
             if (pads.get(key).hasActiveCells()) {
@@ -124,42 +142,47 @@ public class DrumPad16 extends MidiFighterTwisterControl {
     }
 
     private void noteObserver(PlayingNote[] playingNotes) {
-        if (overviewMode.get()) {
-            List<Integer> playing = new ArrayList<>();
-            for (PlayingNote playingNote : playingNotes) {
-                Integer cc = noteToEncoder.get(playingNote.pitch());
-                if(cc == null){
-                    continue;
+        if(isActive()) {
+            if (overviewMode.get()) {
+                List<Integer> playing = new ArrayList<>();
+                for (PlayingNote playingNote : playingNotes) {
+                    Integer cc = noteToEncoder.get(playingNote.pitch());
+                    if (cc == null) {
+                        continue;
+                    }
+                    playing.add(cc);
+                    sendValue(MidiChannel.CHANNEL_1, cc, MidiFighterTwisterColor.ACTIVE_PAD.getValue());
                 }
-                playing.add(cc);
-                sendValue(MidiChannel.CHANNEL_1, cc, MidiFighterTwisterColor.ACTIVE_PAD.getValue());
-            }
 
-            for (int i = 16; i < 32; i++) {
-                if (!playing.contains(i)) {
-                    sendValue(MidiChannel.CHANNEL_1, i, MidiFighterTwisterColor.INACTIVE_PAD.getValue());
+                for (int i = 16; i < 32; i++) {
+                    if (!playing.contains(i)) {
+                        sendValue(MidiChannel.CHANNEL_1, i, MidiFighterTwisterColor.INACTIVE_PAD.getValue());
+                    }
                 }
             }
         }
     }
 
     public void enableObservers(final boolean enable) {
-        this.clip.playingStep().setIsSubscribed(enable);
-        this.clip.getPlayStart().setIsSubscribed(enable);
-        this.clip.getPlayStop().setIsSubscribed(enable);
-        this.clip.getLoopStart().setIsSubscribed(enable);
-        this.clip.getLoopLength().setIsSubscribed(enable);
-        this.clip.isLoopEnabled().setIsSubscribed(enable);
-        this.clip.getShuffle().setIsSubscribed(enable);
-        this.clip.getAccent().setIsSubscribed(enable);
+        if(isActive()) {
+            this.clip.playingStep().setIsSubscribed(enable);
+            this.clip.getPlayStart().setIsSubscribed(enable);
+            this.clip.getPlayStop().setIsSubscribed(enable);
+            this.clip.getLoopStart().setIsSubscribed(enable);
+            this.clip.getLoopLength().setIsSubscribed(enable);
+            this.clip.isLoopEnabled().setIsSubscribed(enable);
+            this.clip.getShuffle().setIsSubscribed(enable);
+            this.clip.getAccent().setIsSubscribed(enable);
+        }
     }
 
     @Override
     protected boolean accept(MidiMessage midiMessage) {
-
-        for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
-            if (midiChannelAndRange.accepts(midiMessage)) {
-                return handle(midiMessage);
+        if(isActive()) {
+            for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
+                if (midiChannelAndRange.accepts(midiMessage)) {
+                    return handle(midiMessage);
+                }
             }
         }
         return false;
@@ -167,7 +190,7 @@ public class DrumPad16 extends MidiFighterTwisterControl {
 
     private boolean handle(MidiMessage midiMessage) {
 
-        if(!settings.isPage2DrumMode()){
+        if (!settings.isPage2DrumMode()) {
             return true;
         }
 
@@ -206,7 +229,6 @@ public class DrumPad16 extends MidiFighterTwisterControl {
     private boolean isPadSelected() {
         return selected.get() != null;
     }
-
 
 
 }

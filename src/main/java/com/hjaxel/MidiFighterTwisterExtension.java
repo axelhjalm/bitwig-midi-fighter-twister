@@ -49,6 +49,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private MidiFighterTwister twister;
     private ColorMap colorMap;
     private UserSettings settings;
+    private UserControlBank userControls;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -58,6 +59,22 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     public void init() {
         host = getHost();
         setupMidiChannels();
+
+        userControls = host.createUserControls(32);
+        for(int i = 0; i < 16; i++){
+            final int x = i;
+            Parameter parameter = userControls.getControl(i);
+            parameter.value().addValueObserver(128, val -> {
+                twister.value(16 + x, val);
+            });
+        }
+        for(int i = 16; i < 32; i++){
+            final int x = i;
+            Parameter parameter = userControls.getControl(i);
+            parameter.value().addValueObserver(128, val -> {
+                twister.color(x, val );
+            });
+        }
 
         colorMap = new ColorMap();
         settings = createSettings(host.getPreferences());
@@ -92,15 +109,16 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         addParameterPageControls();
         addSendObservers();
 
-        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage);
+        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage, userControls);
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
 
 
     private void setupMidiChannels() {
         midiOut = host.getMidiOutPort(0);
-        host.getMidiInPort(0).setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
-        host.getMidiInPort(0).setSysexCallback((String data) -> onSysex0(data));
+        MidiIn midiIn = host.getMidiInPort(0);
+        midiIn.setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
+        midiIn.setSysexCallback((String data) -> onSysex0(data));
     }
 
     private UserSettings createSettings(Preferences preferences) {
@@ -135,7 +153,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
 
-
     @Override
     public void exit() {
         // TODO: Perform any cleanup once the driver exits
@@ -156,6 +173,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         BitwigCommand command = midiMessageParser.parse(midiMessage, s -> print(s));
         print(midiMessage + " == " + command.toString());
         command.execute();
+
         if (settings.isPage2DrumMode()) {
             listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
         }

@@ -20,6 +20,7 @@ package com.hjaxel;
 
 import com.bitwig.extension.controller.api.Application;
 import com.bitwig.extension.controller.api.Clip;
+import com.bitwig.extension.controller.api.UserControlBank;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
 import com.hjaxel.command.application.ZoomCommand;
@@ -43,9 +44,10 @@ public class MidiMessageParser {
     private Application application;
     private final MidiFighterTwister twister;
     private final VolumesPage volumesPage;
+    private UserControlBank userControls;
 
     public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
-                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage) {
+                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage, UserControlBank userControls) {
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
@@ -53,6 +55,7 @@ public class MidiMessageParser {
         this.application = application;
         this.twister = twister;
         this.volumesPage = volumesPage;
+        this.userControls = userControls;
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
@@ -129,6 +132,42 @@ public class MidiMessageParser {
                 return device.parameter(encoder.knob() - 8, settings.fine(), midiMessage.direction(), log);
 
 
+            case P2Knob1:
+            case P2Knob2:
+            case P2Knob3:
+            case P2Knob4:
+            case P2Knob5:
+            case P2Knob6:
+            case P2Knob7:
+            case P2Knob8:
+            case P2Knob9:
+            case P2Knob10:
+            case P2Knob11:
+            case P2Knob12:
+            case P2Knob13:
+            case P2Knob14:
+            case P2Knob15:
+            case P2Knob16:
+                return () -> userControls.getControl(encoder.knob()).set(midiMessage.getVelocity(), 128);
+
+            case P2Knob1Press:
+            case P2Knob2Press:
+            case P2Knob3Press:
+            case P2Knob4Press:
+            case P2Knob5Press:
+            case P2Knob6Press:
+            case P2Knob7Press:
+            case P2Knob8Press:
+            case P2Knob9Press:
+            case P2Knob10Press:
+            case P2Knob11Press:
+            case P2Knob12Press:
+            case P2Knob13Press:
+            case P2Knob14Press:
+            case P2Knob15Press:
+            case P2Knob16Press:
+                return () -> userControls.getControl(16 + encoder.knob()).set(midiMessage.getVelocity(), 128);
+
             case SendTrackScroll:
                 return track.scroll(midiMessage.direction());
             case Send1:
@@ -149,7 +188,7 @@ public class MidiMessageParser {
             case SendToggle6:
             case SendToggle7:
             case SendToggle8:
-                return track.send(encoder.knob()-8, 0, log);
+                return track.send(encoder.knob() - 8, 0, log);
 
             case ArrangerZoomFull:
                 return new ZoomToFitCommand(application);
@@ -182,7 +221,7 @@ public class MidiMessageParser {
                 return twister::selectBank1;
             case GotoVolume:
             case GotoVolume2:
-                return twister::selectBank4 ;
+                return twister::selectBank4;
 
             case Volume1:
             case Volume2:
