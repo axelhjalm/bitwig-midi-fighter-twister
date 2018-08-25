@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by axel on 2017-09-17.
  */
+@Deprecated
 public class DrumPad16 extends MidiFighterTwisterControl {
 
     public static final int LOW_NOTE = 36;
@@ -166,10 +167,6 @@ public class DrumPad16 extends MidiFighterTwisterControl {
     }
 
     private boolean handle(MidiMessage midiMessage) {
-
-        if(!settings.isPage2DrumMode()){
-            return true;
-        }
 
         switch (midiMessage.getChannel()) {
             case CHANNEL_3:

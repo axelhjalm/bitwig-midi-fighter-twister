@@ -6,13 +6,11 @@ import com.bitwig.extension.controller.api.SettableRangedValue;
 
 public class UserSettings {
 
-    private SettableEnumValue page2;
     private SettableEnumValue speed;
     private SettableEnumValue navigationSpeed;
 
-    public UserSettings(SettableEnumValue navigationSpeed, SettableEnumValue page2, SettableEnumValue speed) {
+    public UserSettings(SettableEnumValue navigationSpeed, SettableEnumValue speed) {
         this.navigationSpeed = navigationSpeed;
-        this.page2 = page2;
         this.speed = speed;
     }
 
@@ -50,8 +48,5 @@ public class UserSettings {
         return 2;
     }
 
-    public boolean isPage2DrumMode(){
-        return "Drums".equals(page2.get());
-    }
 
 }

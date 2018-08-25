@@ -23,32 +23,25 @@ import com.bitwig.extension.callback.ShortMidiMessageReceivedCallback;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
 import com.hjaxel.command.BitwigCommand;
-import com.hjaxel.command.factory.*;
+import com.hjaxel.command.factory.DeviceCommandFactory;
+import com.hjaxel.command.factory.TrackCommandFactory;
+import com.hjaxel.command.factory.TransportCommandFactory;
 import com.hjaxel.framework.*;
 import com.hjaxel.page.DevicePage;
-import com.hjaxel.page.MidiFighterTwisterControl;
 import com.hjaxel.page.MixerPage;
 import com.hjaxel.page.VolumesPage;
-import com.hjaxel.page.drum.DrumPad16;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private ControllerHost host;
     private Transport mTransport;
-    private final List<MidiFighterTwisterControl> listeners = new ArrayList<>();
     private SettableEnumValue debugLogging;
     private MidiMessageParser midiMessageParser;
     private CursorTrack cursorTrack;
     private MidiOut midiOut;
     private CursorRemoteControlsPage remoteControlsPage;
-    private TrackBank trackBank;
     private MidiFighterTwister twister;
     private ColorMap colorMap;
-    private UserSettings settings;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -59,14 +52,14 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         host = getHost();
         setupMidiChannels();
 
+        NoteInput drumSequencer = host.getMidiInPort(0).createNoteInput("MFT Drum Sequencer");
+        drumSequencer.setShouldConsumeEvents(false);
+
         colorMap = new ColorMap();
-        settings = createSettings(host.getPreferences());
+        UserSettings settings = createSettings(host.getPreferences());
         debugLogging = host.getPreferences().getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
         mTransport = host.createTransport();
-
-        listeners.add(new DrumPad16(host, settings));
-        listeners.add(new SideButtonConsumer(host, 0));
 
         twister = new MidiFighterTwister(midiOut);
         cursorTrack = host.createCursorTrack("track001", "cursor-track", 8, 0, true);
@@ -76,7 +69,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         transport.isArrangerLoopEnabled().markInterested();
         addListeners(transport);
 
-        trackBank = host.createTrackBank(128, 0, 0, true);
+        TrackBank trackBank = host.createTrackBank(128, 0, 0, true);
         new MixerPage(trackBank, cursorTrack);
 
         PinnableCursorDevice device = cursorTrack.createCursorDevice("76fad0dc-1a84-408f-8d18-66ae5f93a21f", "cursor-device", 8, CursorDeviceFollowMode.FOLLOW_SELECTION);
@@ -104,10 +97,9 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
     private UserSettings createSettings(Preferences preferences) {
-        SettableEnumValue drums = preferences.getEnumSetting("Second page", "Function", new String[]{"Drums", "Unassigned"}, "Unassigned");
         SettableEnumValue speed = preferences.getEnumSetting("Knob speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
         SettableEnumValue navSpeed = preferences.getEnumSetting("Scroll speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
-        return new UserSettings(navSpeed, drums, speed);
+        return new UserSettings(navSpeed, speed);
     }
 
     private void addListeners(Transport transport) {
@@ -135,7 +127,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     }
 
 
-
     @Override
     public void exit() {
         // TODO: Perform any cleanup once the driver exits
@@ -156,17 +147,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         BitwigCommand command = midiMessageParser.parse(midiMessage, s -> print(s));
         print(midiMessage + " == " + command.toString());
         command.execute();
-        if (settings.isPage2DrumMode()) {
-            listeners.stream().map(l -> l.onMessage(msg)).reduce((a, b1) -> a || b1).ifPresent(logUnhandledMessage(msg));
-        }
-    }
-
-    private Consumer<Boolean> logUnhandledMessage(ShortMidiMessage msg) {
-        return b -> {
-            if (!b) {
-                print(String.format("Message not handled c:%s, cc:%s, v:%s", msg.getChannel(), msg.getData1(), msg.getData2()));
-            }
-        };
     }
 
     private int resolveEncoder(int x) {
@@ -202,13 +182,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         }
     }
 
-    private void print(ShortMidiMessage msg) {
-        boolean isDebug = Boolean.parseBoolean(debugLogging.get());
-        if (isDebug) {
-            host.println(String.format("S[%s] C[%s] D1[%s] D2[%s]", msg.getStatusByte(), msg.getChannel(), msg.getData1(), msg.getData2()));
-        }
-    }
-
     /**
      * Called when we receive sysex MIDI message on port 0.
      */
@@ -226,16 +199,4 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             mTransport.record();
     }
 
-
-    private class SideButtonConsumer extends MidiFighterTwisterControl {
-
-        public SideButtonConsumer(ControllerHost host, int firstEncoder) {
-            super(host, firstEncoder);
-        }
-
-        @Override
-        protected boolean accept(MidiMessage midiMessage) {
-            return midiMessage.getChannel() == MidiChannel.CHANNEL_3;
-        }
-    }
 }
