@@ -52,26 +52,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     @Override
     public void init() {
         host = getHost();
+
         setupMidiChannels();
-
-        NoteInput drumSequencer = host.getMidiInPort(0).createNoteInput("MFT Drum Sequencer");
-        drumSequencer.setShouldConsumeEvents(false);
-
-        userControls = host.createUserControls(32);
-        for(int i = 0; i < 16; i++){
-            final int x = i;
-            Parameter parameter = userControls.getControl(i);
-            parameter.value().addValueObserver(128, val -> {
-                twister.value(16 + x, val);
-            });
-        }
-        for(int i = 16; i < 32; i++){
-            final int x = i;
-            Parameter parameter = userControls.getControl(i);
-            parameter.value().addValueObserver(128, val -> {
-                twister.color(x, val );
-            });
-        }
+        setupDrumSequencer();
+        createUserControl();
 
         colorMap = new ColorMap();
         UserSettings settings = createSettings(host.getPreferences());
@@ -107,12 +91,36 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
 
+    private void setupDrumSequencer() {
+        NoteInput drumSequencer = host.getMidiInPort(0).createNoteInput("MFT Drum Sequencer");
+        drumSequencer.setShouldConsumeEvents(false);
+    }
+
+    private void createUserControl() {
+        userControls = host.createUserControls(32);
+
+        for(int i = 0; i < 16; i++){
+            final int x = i;
+            Parameter parameter = userControls.getControl(i);
+            parameter.value().addValueObserver(128, val -> {
+                twister.value(16 + x, val);
+            });
+        }
+        for(int i = 16; i < 32; i++){
+            final int x = i;
+            Parameter parameter = userControls.getControl(i);
+            parameter.value().addValueObserver(128, val -> {
+                twister.color(x, val );
+            });
+        }
+    }
+
 
     private void setupMidiChannels() {
         midiOut = host.getMidiOutPort(0);
         MidiIn midiIn = host.getMidiInPort(0);
-        midiIn.setMidiCallback((ShortMidiMessageReceivedCallback) msg -> onMidi0(msg));
-        midiIn.setSysexCallback((String data) -> onSysex0(data));
+        midiIn.setMidiCallback((ShortMidiMessageReceivedCallback) this::onMidi0);
+        midiIn.setSysexCallback(this::onSysex0);
     }
 
     private UserSettings createSettings(Preferences preferences) {

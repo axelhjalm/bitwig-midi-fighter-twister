@@ -206,12 +206,11 @@ public class MidiMessageParser {
 
             // Function toggles
             case Device:
-                return () -> application.toggleDevices();
+                return () -> {};
             case Drums:
-                return () -> {
-                };
+                return () -> {};
             case Mixer:
-                return () -> application.toggleMixer();
+                return () -> {};
 
             case GotoMixer:
             case GotoMixer2:

@@ -56,15 +56,11 @@ public class DrumPad16 extends MidiFighterTwisterControl {
     private UserSettings settings;
 
 
-    private boolean isActive() {
-        return this.settings.isPage2DrumMode();
-    }
 
     public DrumPad16(ControllerHost host, UserSettings settings) {
         super(host, 16);
         this.settings = settings;
 
-        if (isActive()) {
             populateNoteToEncoderMap();
             this.clip = host.createLauncherCursorClip(127, 127);
 
@@ -79,29 +75,23 @@ public class DrumPad16 extends MidiFighterTwisterControl {
 
             addPadListeners(host);
 
-        }
 
     }
 
     private void addPadListeners(ControllerHost host) {
-        if (isActive()) {
             for (int i = LOW_NOTE; i <= HIGH_NOTE; i++) {
                 pads.put(i, new DrumSequencer(host, clip, i));
             }
-        }
     }
 
     private void addNoteObserver() {
-        if (isActive()) {
             PlayingNoteArrayValue playingNoteArrayValue = clip.getTrack().playingNotes();
             playingNoteArrayValue.markInterested();
             playingNoteArrayValue.setIsSubscribed(true);
             playingNoteArrayValue.addValueObserver(this::noteObserver);
-        }
     }
 
     private void subscribeToClipEvents() {
-        if (isActive()) {
             this.clip.setIsSubscribed(true);
             this.clip.playingStep().markInterested();
             this.clip.getPlayStart().markInterested();
@@ -113,19 +103,15 @@ public class DrumPad16 extends MidiFighterTwisterControl {
             this.clip.getAccent().markInterested();
             this.clip.canScrollStepsBackwards().markInterested();
             this.clip.canScrollStepsForwards().markInterested();
-        }
     }
 
     private void populateNoteToEncoderMap() {
-        if (isActive()) {
             for (int i = 0; i < 16; i++) {
                 noteToEncoder.put(encoderPadLookup[i], i + 16);
             }
-        }
     }
 
     private void drawOverview() {
-        if(isActive()){
         for (int i = 0; i < 16; i++) {
             ringOff(i);
         }
@@ -137,12 +123,10 @@ public class DrumPad16 extends MidiFighterTwisterControl {
                 led(key, MidiFighterTwisterColor.INACTIVE_PAD);
             }
             */
-        }
 
     }
 
     private void noteObserver(PlayingNote[] playingNotes) {
-        if(isActive()) {
             if (overviewMode.get()) {
                 List<Integer> playing = new ArrayList<>();
                 for (PlayingNote playingNote : playingNotes) {
@@ -160,11 +144,9 @@ public class DrumPad16 extends MidiFighterTwisterControl {
                     }
                 }
             }
-        }
     }
 
     public void enableObservers(final boolean enable) {
-        if(isActive()) {
             this.clip.playingStep().setIsSubscribed(enable);
             this.clip.getPlayStart().setIsSubscribed(enable);
             this.clip.getPlayStop().setIsSubscribed(enable);
@@ -173,26 +155,20 @@ public class DrumPad16 extends MidiFighterTwisterControl {
             this.clip.isLoopEnabled().setIsSubscribed(enable);
             this.clip.getShuffle().setIsSubscribed(enable);
             this.clip.getAccent().setIsSubscribed(enable);
-        }
     }
 
     @Override
     protected boolean accept(MidiMessage midiMessage) {
-        if(isActive()) {
             for (MidiChannelAndRange midiChannelAndRange : observedMessages) {
                 if (midiChannelAndRange.accepts(midiMessage)) {
                     return handle(midiMessage);
                 }
             }
-        }
         return false;
     }
 
     private boolean handle(MidiMessage midiMessage) {
 
-        if (!settings.isPage2DrumMode()) {
-            return true;
-        }
 
         switch (midiMessage.getChannel()) {
             case CHANNEL_3:
