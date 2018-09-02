@@ -42,8 +42,8 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private CursorRemoteControlsPage remoteControlsPage;
     private MidiFighterTwister twister;
     private ColorMap colorMap;
-    private UserSettings settings;
     private UserControlBank userControls;
+    private UserSettings settings;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -58,7 +58,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
         createUserControl();
 
         colorMap = new ColorMap();
-        UserSettings settings = createSettings(host.getPreferences());
+        settings = createSettings(host.getPreferences());
         debugLogging = host.getPreferences().getEnumSetting("Debug Logging", "Debug", new String[]{"False", "True"}, "False");
 
         mTransport = host.createTransport();
@@ -126,7 +126,8 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private UserSettings createSettings(Preferences preferences) {
         SettableEnumValue speed = preferences.getEnumSetting("Knob speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
         SettableEnumValue navSpeed = preferences.getEnumSetting("Scroll speed", "Settings", new String[]{"Slow", "Medium", "Fast"}, "Medium");
-        return new UserSettings(navSpeed, speed);
+        SettableEnumValue playFlash  = preferences.getEnumSetting("Flash on play", "Settings", new String[]{"On", "Off"}, "On");
+        return new UserSettings(navSpeed, speed, playFlash);
     }
 
     private void addListeners(Transport transport) {
@@ -141,7 +142,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
     private void addListener(Encoder encoder, SettableBooleanValue booleanValue) {
         booleanValue.addValueObserver(b -> {
-            if (booleanValue.get()) {
+            if (booleanValue.get() && settings.flashOnPlay() ) {
                 encoder.send(midiOut, 6);
             } else {
                 encoder.send(midiOut, 0);

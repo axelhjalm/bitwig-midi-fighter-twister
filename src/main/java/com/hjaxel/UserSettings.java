@@ -1,19 +1,22 @@
 package com.hjaxel;
 
-import com.bitwig.extension.controller.api.RangedValue;
 import com.bitwig.extension.controller.api.SettableEnumValue;
-import com.bitwig.extension.controller.api.SettableRangedValue;
 
 public class UserSettings {
 
     private SettableEnumValue speed;
+    private SettableEnumValue playFlash;
     private SettableEnumValue navigationSpeed;
 
-    public UserSettings(SettableEnumValue navigationSpeed, SettableEnumValue speed) {
+    public UserSettings(SettableEnumValue navigationSpeed, SettableEnumValue speed, SettableEnumValue playFlash) {
         this.navigationSpeed = navigationSpeed;
         this.speed = speed;
+        this.playFlash = playFlash;
     }
 
+    public boolean flashOnPlay(){
+        return "On".equals(playFlash.get());
+    }
 
     public double coarse(){
         return Math.pow(2, 7);
