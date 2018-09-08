@@ -1,18 +1,11 @@
 # bitwig-midi-fighter-twister
-Bitwig extension for midi fighter twister
-
-## Overview
-The extension currently offers two different views, or "pages"
-1) Track navigation and device control
-2) 16 pad drum sequencer with support for clip of one measure length
- 
-Navigation between the two pages are done by the middle side buttons. Left side button will navigate to device mode, single press on right middle button from device view will navigate to drum pad mode. Pressing middle right button again will navigate to next Midi Fighter Twister page for which no functionality is currently implemented.   
+Bitwig extension for midi fighter twister. Requires Bitwig 2.3
 
 ## Installation
 Latest version:
 https://github.com/axelhjalm/bitwig-midi-fighter-twister/releases/tag/0.1
 
-Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as per the documentation. Load the Midi Fighter Twister settings found in the fil mft_bitwig.mfs file
+Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as per the documentation. Load the Midi Fighter Twister settings found in the file mft_bitwig.mfs file
     
 ## Functionality
 
@@ -41,13 +34,13 @@ Second row, from left to right
 Third and forth row:
 Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control. Outer ring shows current value and is updated when stepping through parameter pages or devices.
 
-###  Parameters (NEW IN 0.3)
+###  Parameters 
 Under Settings > Controllers are setting for the Midi Fighter Twister Controller. These are:
 * Coarse and Fine Control Scale - Settable between 1 (fastest) and 12 (slowest), to change how fast macro control knobs change.
 * Navigation Cursor Scroll speed - Controls the speed for "navigation" knobs
 * Debug Log - enable or disable console debug logging (disabled by default)
 
-### Mix / Send (NEW IN 0.5)
+### Mix / Send 
 Press BL (Bottom Left button) to go to mix page. Press top left to go to device page
 
 The eight rightmost knobs controls Send 1 - Send 8, press to set value of that send to 0
@@ -61,17 +54,6 @@ The eight rightmost knobs controls Send 1 - Send 8, press to set value of that s
 ### 16 track volume mixer
 Press TR (top right) to access. Here you can adjust volume (turn knob) and solo tracks (press button).
 User top left and bottom left buttons to scroll 16 tracks at a time.
-
-### 16 pad drum sequencer
-This mode must be used on a clip the size of one measure (16 x 16th notes) together till Bitwig Drum Machine. Might work with other devices but has not been tested properly. 
-Press a knob to enter step sequencer for that drum (knobs turn green). While in this view, press knobs to toggle the drum pad for the corresponding step. Twist not to set volume.
-To return to drum pad selection, press lower left button. While playing, the LEDs will light up when the corresponding drum pad i triggered. 
-To reset the clip, press the lower right button. Be warned that this will reset all notes in the selected midi clip! 
-
-## Know limitations
-1) Drum pad only supports one full measure
-2) Switching between drumpad clips or other clips will not update the sequencer in the Midi Fighter Twister
-
 
 ## Licensing
  Bitwig Extension for Midi Fighter Twister
