@@ -103,6 +103,8 @@ public class MidiMessageParser {
                 return device.scrollDevice(midiMessage.direction());
             case ParameterPageNavigation:
                 return device.scrollParameterPage(midiMessage.direction());
+            case DisplayRemoteControls:
+                return device.toggleRemoteControlsCommand();
             case DisplayDevice:
                 return device.toggleDisplayDeviceCommand();
             case ToggleDevice:

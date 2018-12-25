@@ -65,6 +65,8 @@ public class DeviceCommandFactory {
         return new SelectPresetsCommand(browser);
     }
 
+    public ToggleRemoteControlsCommand toggleRemoteControlsCommand() { return new ToggleRemoteControlsCommand(cursorDevice); }
+
     public ToggleDeviceCommand toggleDeviceCommand() {
         return new ToggleDeviceCommand(cursorDevice);
     }
@@ -83,7 +85,7 @@ public class DeviceCommandFactory {
     public BitwigCommand scrollParameterPage(int direction) {
         return () ->
         {
-            cursorDevice.isRemoteControlsSectionVisible().set(true);
+//            cursorDevice.isRemoteControlsSectionVisible().set(true);
             cursorDevice.selectInEditor();
             parameters.onChange(64 + direction);
         };

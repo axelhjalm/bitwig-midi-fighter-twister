@@ -86,6 +86,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         addParameterPageControls();
         addSendObservers();
+        setIndications();
 
         midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage, userControls);
         host.showPopupNotification("Midi Fighter Twister Initialized");
@@ -227,4 +228,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             mTransport.record();
     }
 
+    private void setIndications() {
+        for (int i = 0; i < remoteControlsPage.getParameterCount(); i++) {
+            RemoteControl parameter = remoteControlsPage.getParameter(i);
+            parameter.setIndication(true);
+        }
+    }
 }

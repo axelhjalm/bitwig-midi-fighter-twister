@@ -41,6 +41,7 @@ public enum Encoder {
     Play(MidiChannel.CHANNEL_1, 3),
     PlayPulse(MidiChannel.CHANNEL_2, 3),
     SendPlayPulse(MidiChannel.CHANNEL_2, 35),
+    DisplayRemoteControls(MidiChannel.CHANNEL_1, 4),
     DisplayDevice(MidiChannel.CHANNEL_1, 5),
     ToggleDevice(MidiChannel.CHANNEL_1, 6),
     Preset(MidiChannel.CHANNEL_0, 7),

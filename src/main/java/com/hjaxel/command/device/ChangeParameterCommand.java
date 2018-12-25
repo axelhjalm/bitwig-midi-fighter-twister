@@ -38,7 +38,7 @@ public class ChangeParameterCommand implements BitwigCommand {
 
     @Override
     public void execute() {
-        cursorDevice.isRemoteControlsSectionVisible().set(true);
+//        cursorDevice.isRemoteControlsSectionVisible().set(true);
         remoteControl.inc(delta, scale);
     }
 

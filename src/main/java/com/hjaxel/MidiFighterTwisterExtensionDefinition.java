@@ -51,7 +51,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    @Override
    public String getVersion()
    {
-      return "0.1";
+      return "0.8.1.D1";
    }
 
    @Override
@@ -99,7 +99,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
       }
       else if (platformType == PlatformType.MAC)
       {
-         // TODO: Set the correct names of the ports for auto detection on Windows platform here
+         // TODO: Set the correct names of the ports for auto detection on macOS platform here
          // and uncomment this when port names are correct.
          // list.add(new String[]{"Input Port 0"}, new String[]{"Output Port 0"});
       }
