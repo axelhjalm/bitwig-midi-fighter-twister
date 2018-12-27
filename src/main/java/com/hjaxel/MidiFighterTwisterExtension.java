@@ -44,6 +44,7 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private ColorMap colorMap;
     private UserControlBank userControls;
     private UserSettings settings;
+    private TwisterMode currentMode;
 
     protected MidiFighterTwisterExtension(final MidiFighterTwisterExtensionDefinition definition, final ControllerHost host) {
         super(definition, host);
@@ -86,9 +87,10 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
 
         addParameterPageControls();
         addSendObservers();
-        setIndications();
 
-        midiMessageParser = new MidiMessageParser(trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage, userControls);
+        this.changeMode(TwisterMode.DEVICE);
+
+        midiMessageParser = new MidiMessageParser(this, trackFactory, transportFactory, deviceFactory, settings, host.createApplication(), twister, volumesPage, userControls);
         host.showPopupNotification("Midi Fighter Twister Initialized");
     }
 
@@ -154,7 +156,6 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
     private void addListener(Encoder encoder, Parameter parameter) {
         parameter.value().addValueObserver(128, val -> encoder.send(midiOut, val));
     }
-
 
     @Override
     public void exit() {
@@ -228,10 +229,23 @@ public class MidiFighterTwisterExtension extends ControllerExtension {
             mTransport.record();
     }
 
-    private void setIndications() {
+    public void changeMode(TwisterMode mode) {
+        twister.selectBank(mode.getBank());
+        this.currentMode = mode;
+        this.updateIndications();
+    }
+
+    public void updateMode(TwisterMode mode) {
+        this.currentMode = mode;
+        this.updateIndications();
+    }
+
+    private void updateIndications() {
+        boolean deviceIndications = (this.currentMode == TwisterMode.DEVICE);
+
         for (int i = 0; i < remoteControlsPage.getParameterCount(); i++) {
             RemoteControl parameter = remoteControlsPage.getParameter(i);
-            parameter.setIndication(true);
+            parameter.setIndication(deviceIndications);
         }
     }
 }

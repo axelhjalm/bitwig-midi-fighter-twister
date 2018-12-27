@@ -16,12 +16,6 @@
 		</repository>
 	</repositories>
 
-	<properties>
-		<bitwig.extension.directory>.</bitwig.extension.directory>
-
-	</properties>
-
-
 	<dependencies>
 		<dependency>
 			<groupId>com.bitwig</groupId>

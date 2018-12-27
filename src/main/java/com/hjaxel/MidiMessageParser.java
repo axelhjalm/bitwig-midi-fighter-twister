@@ -37,6 +37,7 @@ import java.util.function.Consumer;
 
 public class MidiMessageParser {
 
+    private final MidiFighterTwisterExtension extension;
     private final TrackCommandFactory track;
     private final TransportCommandFactory transport;
     private final DeviceCommandFactory device;
@@ -46,8 +47,9 @@ public class MidiMessageParser {
     private final VolumesPage volumesPage;
     private UserControlBank userControls;
 
-    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
-                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage, UserControlBank userControls) {
+    public MidiMessageParser(MidiFighterTwisterExtension extension, TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
+                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage,UserControlBank userControls) {
+        this.extension = extension;
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
@@ -208,21 +210,23 @@ public class MidiMessageParser {
 
             // Function toggles
             case Device:
-                return () -> {};
+                return () -> extension.updateMode(TwisterMode.DEVICE);
             case Drums:
-                return () -> {};
+                return () -> extension.updateMode(TwisterMode.DRUMS);
             case Mixer:
-                return () -> {};
+                return () -> extension.updateMode(TwisterMode.MIXER);
+            case Volumes:
+                return () -> extension.updateMode(TwisterMode.VOLUMES);
 
             case GotoMixer:
             case GotoMixer2:
-                return twister::selectBank3;
+                return () -> extension.changeMode(TwisterMode.MIXER);
             case GotoDevice:
             case GotoDevice2:
-                return twister::selectBank1;
+                return () -> extension.changeMode(TwisterMode.DEVICE);
             case GotoVolume:
             case GotoVolume2:
-                return twister::selectBank4;
+                return () -> extension.changeMode(TwisterMode.VOLUMES);
 
             case Volume1:
             case Volume2:

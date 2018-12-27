@@ -30,22 +30,9 @@ public class MidiFighterTwister {
         this.midiOut = Objects.requireNonNull(midiOut, "midiOut");
     }
 
-    public void selectBank1() {
-        midiOut.sendMidi(147, 0, 127);
+    public void selectBank(Bank bank) {
+        midiOut.sendMidi(bank.getStatus(), bank.getData1(), bank.getData2());
     }
-
-    public void selectBank2() {
-        midiOut.sendMidi(147, 1, 127);
-    }
-
-    public void selectBank3() {
-        midiOut.sendMidi(147, 2, 127);
-    }
-
-    public void selectBank4() {
-        midiOut.sendMidi(147, 3, 127);
-    }
-
 
     public void startFlash(int cc) {
         midiOut.sendMidi(MidiChannel.CHANNEL_2.value(), cc, 6);

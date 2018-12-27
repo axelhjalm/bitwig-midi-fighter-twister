@@ -135,6 +135,7 @@ public enum Encoder {
     Device(MidiChannel.CHANNEL_3, 0),
     Drums(MidiChannel.CHANNEL_3, 1),
     Mixer(MidiChannel.CHANNEL_3, 2),
+    Volumes(MidiChannel.CHANNEL_3, 3),
 
     GotoMixer(MidiChannel.CHANNEL_3, 10),
     GotoDevice2(MidiChannel.CHANNEL_3, 26),
