@@ -20,6 +20,7 @@ package com.hjaxel.framework;
 
 import com.bitwig.extension.controller.api.MidiOut;
 
+import java.time.Instant;
 import java.util.Optional;
 
 public enum Encoder {
@@ -64,6 +65,15 @@ public enum Encoder {
     ParameterFine6(MidiChannel.CHANNEL_4, 13),
     ParameterFine7(MidiChannel.CHANNEL_4, 14),
     ParameterFine8(MidiChannel.CHANNEL_4, 15),
+
+    ParameterKnobPress1(MidiChannel.CHANNEL_1, 8),
+    ParameterKnobPress2(MidiChannel.CHANNEL_1, 9),
+    ParameterKnobPress3(MidiChannel.CHANNEL_1, 10),
+    ParameterKnobPress4(MidiChannel.CHANNEL_1, 11),
+    ParameterKnobPress5(MidiChannel.CHANNEL_1, 12),
+    ParameterKnobPress6(MidiChannel.CHANNEL_1, 13),
+    ParameterKnobPress7(MidiChannel.CHANNEL_1, 14),
+    ParameterKnobPress8(MidiChannel.CHANNEL_1, 15),
 
 
     P2Knob1(MidiChannel.CHANNEL_0, 16),
@@ -133,7 +143,7 @@ public enum Encoder {
     ArrangerZoomFull(MidiChannel.CHANNEL_1, 38),
 
     Device(MidiChannel.CHANNEL_3, 0),
-    Drums(MidiChannel.CHANNEL_3, 1),
+    Undefined(MidiChannel.CHANNEL_3, 1),
     Mixer(MidiChannel.CHANNEL_3, 2),
     Volumes(MidiChannel.CHANNEL_3, 3),
 
@@ -186,6 +196,7 @@ public enum Encoder {
 
     private final MidiChannel channel;
     private final int cc;
+    private Instant lastActionTime = null;
 
     public MidiChannel getChannel() {
         return channel;
@@ -214,8 +225,15 @@ public enum Encoder {
         this.channel = channel;
     }
 
-
     public void send(MidiOut outPort, int value) {
         outPort.sendMidi(channel.value(), cc, value);
+    }
+
+    public void setLastActionTime(Instant time) {
+        this.lastActionTime = time;
+    }
+
+    public Instant getLastActionTime() {
+        return this.lastActionTime;
     }
 }

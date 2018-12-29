@@ -19,7 +19,6 @@
 package com.hjaxel;
 
 import com.bitwig.extension.controller.api.Application;
-import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.UserControlBank;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
@@ -33,6 +32,8 @@ import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.function.Consumer;
 
 public class MidiMessageParser {
@@ -46,6 +47,7 @@ public class MidiMessageParser {
     private final MidiFighterTwister twister;
     private final VolumesPage volumesPage;
     private UserControlBank userControls;
+    private static final int doublePressThreshold = 270; // Milliseconds between knob presses to register a double-press
 
     public MidiMessageParser(MidiFighterTwisterExtension extension, TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
                              UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage,UserControlBank userControls) {
@@ -61,6 +63,7 @@ public class MidiMessageParser {
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
+
         return Encoder.from(midiMessage)
                 .map(encoder -> toCommand(encoder, midiMessage, c)).orElse(new NoAction(midiMessage));
     }
@@ -135,6 +138,15 @@ public class MidiMessageParser {
             case ParameterFine8:
                 return device.parameter(encoder.knob() - 8, settings.fine(), midiMessage.direction(), log);
 
+            case ParameterKnobPress1:
+            case ParameterKnobPress2:
+            case ParameterKnobPress3:
+            case ParameterKnobPress4:
+            case ParameterKnobPress5:
+            case ParameterKnobPress6:
+            case ParameterKnobPress7:
+            case ParameterKnobPress8:
+                return isDoubleKnobPress(encoder) ? device.resetParameterCommand(encoder.knob() - 8) : new NoAction(midiMessage);
 
             case P2Knob1:
             case P2Knob2:
@@ -209,14 +221,14 @@ public class MidiMessageParser {
                 return transport.loopToggle();
 
             // Function toggles
-            case Device:
-                return () -> extension.updateMode(TwisterMode.DEVICE);
-            case Drums:
-                return () -> extension.updateMode(TwisterMode.DRUMS);
             case Mixer:
                 return () -> extension.updateMode(TwisterMode.MIXER);
+            case Device:
+                return () -> extension.updateMode(TwisterMode.DEVICE);
             case Volumes:
                 return () -> extension.updateMode(TwisterMode.VOLUMES);
+            case Undefined:
+                return () -> extension.updateMode(TwisterMode.UNDEFINED);
 
             case GotoMixer:
             case GotoMixer2:
@@ -274,4 +286,16 @@ public class MidiMessageParser {
         throw new IllegalStateException("Unhandled message " + midiMessage);
     }
 
+    private boolean isDoubleKnobPress(Encoder encoder) {
+        Instant now = Instant.now();
+        Instant lastActionTime = encoder.getLastActionTime();
+        encoder.setLastActionTime(now);
+        long timeSinceLastAction;
+        try {
+            timeSinceLastAction = Duration.between(lastActionTime, now).toMillis();
+        } catch (NullPointerException | ArithmeticException e) {
+            return false;
+        }
+        return (timeSinceLastAction < doublePressThreshold);
+    }
 }

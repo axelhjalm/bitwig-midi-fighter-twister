@@ -51,7 +51,7 @@ public class MidiFighterTwisterExtensionDefinition extends ControllerExtensionDe
    @Override
    public String getVersion()
    {
-      return "0.8.1.D1";
+      return "9.0D";
    }
 
    @Override
