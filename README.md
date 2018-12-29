@@ -29,7 +29,7 @@ Second row, from left to right
 8: Scroll to open preset browsing (presets in Bitwig only), press to select preset
 
 Third and forth row:
-Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control. Outer ring shows current value and is updated when stepping through parameter pages or devices.
+Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control, double-press to reset to default value. Outer ring shows current value and is updated when stepping through parameter pages or devices.
 
 ###  Parameters 
 Under Settings > Controllers are setting for the Midi Fighter Twister Controller. These are:
