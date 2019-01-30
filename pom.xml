@@ -6,7 +6,7 @@
 	<artifactId>midi-fighter-twister</artifactId>
 	<packaging>jar</packaging>
 	<name>Midi Fighter Twister</name>
-	<version>0.6.1</version>
+	<version>9.0D</version>
 
 	<repositories>
 		<repository>
@@ -15,12 +15,6 @@
 			<url>https://maven.bitwig.com</url>
 		</repository>
 	</repositories>
-
-	<properties>
-		<bitwig.extension.directory>.</bitwig.extension.directory>
-
-	</properties>
-
 
 	<dependencies>
 		<dependency>

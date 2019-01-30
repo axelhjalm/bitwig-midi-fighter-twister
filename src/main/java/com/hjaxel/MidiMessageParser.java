@@ -19,7 +19,6 @@
 package com.hjaxel;
 
 import com.bitwig.extension.controller.api.Application;
-import com.bitwig.extension.controller.api.Clip;
 import com.bitwig.extension.controller.api.UserControlBank;
 import com.hjaxel.command.BitwigCommand;
 import com.hjaxel.command.NoAction;
@@ -33,10 +32,13 @@ import com.hjaxel.framework.Encoder;
 import com.hjaxel.framework.MidiFighterTwister;
 import com.hjaxel.framework.MidiMessage;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.function.Consumer;
 
 public class MidiMessageParser {
 
+    private final MidiFighterTwisterExtension extension;
     private final TrackCommandFactory track;
     private final TransportCommandFactory transport;
     private final DeviceCommandFactory device;
@@ -45,9 +47,11 @@ public class MidiMessageParser {
     private final MidiFighterTwister twister;
     private final VolumesPage volumesPage;
     private UserControlBank userControls;
+    private static final int doublePressThreshold = 270; // Milliseconds between knob presses to register a double-press
 
-    public MidiMessageParser(TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
-                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage, UserControlBank userControls) {
+    public MidiMessageParser(MidiFighterTwisterExtension extension, TrackCommandFactory cursorTrack, TransportCommandFactory transport, DeviceCommandFactory device,
+                             UserSettings settings, Application application, MidiFighterTwister twister, VolumesPage volumesPage,UserControlBank userControls) {
+        this.extension = extension;
         this.track = cursorTrack;
         this.transport = transport;
         this.device = device;
@@ -59,6 +63,7 @@ public class MidiMessageParser {
     }
 
     public BitwigCommand parse(MidiMessage midiMessage, Consumer<String> c) {
+
         return Encoder.from(midiMessage)
                 .map(encoder -> toCommand(encoder, midiMessage, c)).orElse(new NoAction(midiMessage));
     }
@@ -103,6 +108,8 @@ public class MidiMessageParser {
                 return device.scrollDevice(midiMessage.direction());
             case ParameterPageNavigation:
                 return device.scrollParameterPage(midiMessage.direction());
+            case DisplayRemoteControls:
+                return device.toggleRemoteControlsCommand();
             case DisplayDevice:
                 return device.toggleDisplayDeviceCommand();
             case ToggleDevice:
@@ -131,6 +138,15 @@ public class MidiMessageParser {
             case ParameterFine8:
                 return device.parameter(encoder.knob() - 8, settings.fine(), midiMessage.direction(), log);
 
+            case ParameterKnobPress1:
+            case ParameterKnobPress2:
+            case ParameterKnobPress3:
+            case ParameterKnobPress4:
+            case ParameterKnobPress5:
+            case ParameterKnobPress6:
+            case ParameterKnobPress7:
+            case ParameterKnobPress8:
+                return isDoubleKnobPress(encoder) ? device.resetParameterCommand(encoder.knob() - 8) : new NoAction(midiMessage);
 
             case P2Knob1:
             case P2Knob2:
@@ -205,22 +221,24 @@ public class MidiMessageParser {
                 return transport.loopToggle();
 
             // Function toggles
-            case Device:
-                return () -> {};
-            case Drums:
-                return () -> {};
             case Mixer:
-                return () -> {};
+                return () -> extension.updateMode(TwisterMode.MIXER);
+            case Device:
+                return () -> extension.updateMode(TwisterMode.DEVICE);
+            case Volumes:
+                return () -> extension.updateMode(TwisterMode.VOLUMES);
+            case Undefined:
+                return () -> extension.updateMode(TwisterMode.UNDEFINED);
 
             case GotoMixer:
             case GotoMixer2:
-                return twister::selectBank3;
+                return () -> extension.changeMode(TwisterMode.MIXER);
             case GotoDevice:
             case GotoDevice2:
-                return twister::selectBank1;
+                return () -> extension.changeMode(TwisterMode.DEVICE);
             case GotoVolume:
             case GotoVolume2:
-                return twister::selectBank4;
+                return () -> extension.changeMode(TwisterMode.VOLUMES);
 
             case Volume1:
             case Volume2:
@@ -268,4 +286,16 @@ public class MidiMessageParser {
         throw new IllegalStateException("Unhandled message " + midiMessage);
     }
 
+    private boolean isDoubleKnobPress(Encoder encoder) {
+        Instant now = Instant.now();
+        Instant lastActionTime = encoder.getLastActionTime();
+        encoder.setLastActionTime(now);
+        long timeSinceLastAction;
+        try {
+            timeSinceLastAction = Duration.between(lastActionTime, now).toMillis();
+        } catch (NullPointerException | ArithmeticException e) {
+            return false;
+        }
+        return (timeSinceLastAction < doublePressThreshold);
+    }
 }

@@ -2,10 +2,7 @@
 Bitwig extension for midi fighter twister. Requires Bitwig 2.3
 
 ## Installation
-Latest version:
-https://github.com/axelhjalm/bitwig-midi-fighter-twister/releases/tag/0.1
-
-Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as per the documentation. Load the Midi Fighter Twister settings found in the file mft_bitwig.mfs file
+Put the MidiFighterTwister.bwextension file under the Bitwig Extension folder as per the documentation. Load the Midi Fighter Twister settings found in the .mfs file
     
 ## Functionality
 
@@ -26,13 +23,13 @@ First row, from left to right
 4: Position in track, press to play / stop
 
 Second row, from left to right
-5: Scroll through selected device preset pages
+5: Scroll through selected device preset pages, press to open / close remote controls panel
 6: Scroll through devices in selected track, press to open / close device window
 7: Press to disable device
-7: Scroll to open preset browsing (presets in Bitwig only), press to select preset
+8: Scroll to open preset browsing (presets in Bitwig only), press to select preset
 
 Third and forth row:
-Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control. Outer ring shows current value and is updated when stepping through parameter pages or devices.
+Controls parameter in device preset page. Turn know to control parameter, press to toggle between coarse and fine control, double-press to reset to default value. Outer ring shows current value and is updated when stepping through parameter pages or devices.
 
 ###  Parameters 
 Under Settings > Controllers are setting for the Midi Fighter Twister Controller. These are:
