@@ -18,7 +18,6 @@
 
 package com.hjaxel.command.device;
 
-import com.bitwig.extension.controller.api.CursorDevice;
 import com.bitwig.extension.controller.api.RemoteControl;
 import com.hjaxel.command.BitwigCommand;
 
